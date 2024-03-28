@@ -1,0 +1,84 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    request.ip_address_field: '%env(REQUEST_FIELD_IP_ADDRESS)%'
+    request.country_field: '%env(REQUEST_FIELD_COUNTRY)%'
+    request.region_field: '%env(REQUEST_FIELD_REGION)%'
+    request.city_field: '%env(REQUEST_FIELD_CITY)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # for bref message queue setup
+    Bref\Symfony\Messenger\Service\Sqs\SqsConsumer:
+        public: true
+        autowire: true
+        arguments:
+            # Pass the transport name used in config/packages/messenger.yaml
+            $transportName: 'async'
+            # true enables partial SQS batch failure
+            # Enabling this without proper SQS config will consider all your messages successful
+            # See https://bref.sh/docs/function/handlers.html#partial-batch-response for more details.
+            $partialBatchFailure: false
+
+    # don't use the custom bundle for sessions as puts everything in one table
+    AsyncAws\DynamoDbSession\SessionHandler:
+        arguments:
+            - '@async_aws.client.dynamo_db'
+            - { table_name: "%env(resolve:DYNAMODB_SESSIONS_TABLE)%", session_lifetime: 259200 }
+
+    #### ALL for cache - redo this at some point because it's HACKY as fuck... using the bundle by default doesn't work because it merges sessions and data in the same table and overrides everything #####
+    # copied from the bundle config so don't have to use them all...
+    rikudou.clock.default:
+        class: Rikudou\Clock\Clock
+
+    rikudou.dynamo_cache.encoder.serialize:
+        class: Rikudou\DynamoDbCache\Encoder\SerializeItemEncoder
+
+    rikudou.dynamo_cache.encoder.default: '@rikudou.dynamo_cache.encoder.serialize' # redefined in extension
+
+    Rikudou\DynamoDbCacheBundle\Converter\SymfonyCacheItemConverter:
+        alias: rikudou.dynamo_cache.converter.cache_item
+
+    rikudou.dynamo_cache.converter.cache_item:
+        class: Rikudou\DynamoDbCacheBundle\Converter\SymfonyCacheItemConverter
+        arguments:
+            - '@rikudou.clock.default'
+            - '@rikudou.dynamo_cache.encoder.default'
+        tags:
+            - rikudou.dynamo_cache.converter
+
+    # custom stuff
+    data.cache.client:
+        class: Rikudou\DynamoDbCache\DynamoDbCache
+        arguments:
+            - "%env(resolve:DYNAMODB_CACHE_TABLE)%"
+            - '@async_aws.client.dynamo_db'
+            - 'id'
+            - 'expires'
+
+    # do use the bundle for data though
+    cache.dynamodb.adapter:
+        class: App\Rikuduo\DynamoDbCacheBundle\Cache\DynamoDbCacheAdapter
+        arguments:
+            - 'default_group'# this is a hack because otherwise in local you can't use it because it does traceble thing and passes first arg as string...
+            - '@data.cache.client'
+            - '@rikudou.dynamo_cache.converter.cache_item'

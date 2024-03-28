@@ -1,0 +1,12 @@
+framework:
+    messenger:
+        transports:
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: false
+            sync: 'sync://'
+        routing:
+            # Route your messages to the transports
+            'App\Message\MessageInterface': sync
+            'App\Message\AsyncMessageInterface': async

@@ -1,0 +1,41 @@
+version: "3.5"
+
+services:
+  web:
+    image: bref/php-83-fpm-dev:2
+    container_name: symfony_bref_starter_web
+    ports: [ '8011:8000' ]
+    volumes:
+      - .:/var/task
+    depends_on:
+      - mysql
+    environment:
+      HANDLER: public/index.php
+      DOCUMENT_ROOT: public
+      APP_ENV: local
+
+  # this is used to run composer install, yarn install, encore dev etc. etc. because the base php-fpm image
+  # doesn't have it in - I can't do an image on top of theirs because it's a specific AWS lambda one
+  dev_php:
+    image: registry.gitlab.com/tomctech/bref-symfony-ci-docker:v1-0
+    container_name: symfony_bref_starter_dev_php
+    depends_on:
+      - mysql
+    env_file: .env.local
+    # put a bullshit command so we can keep the container running
+    command: tail -f /dev/null
+    volumes:
+      - .:/var/task
+
+  mysql:
+    container_name: symfony_bref_starter_mysql
+    image: mysql:8.0.33
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=symfony_bref_starter_dev
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=password
+    volumes:
+      - ./var/data/mysql:/var/lib/mysql:rw
+    ports:
+      - '3311:3306'

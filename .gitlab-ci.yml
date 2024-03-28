@@ -1,0 +1,43 @@
+image: registry.gitlab.com/tomctech/bref-symfony-ci-docker:v1-0
+
+cache:
+  paths:
+    - vendor/
+    - node_modules/
+
+stages:
+  - deploy
+
+dev:
+  stage: deploy
+  only:
+    - develop
+  before_script:
+    - export SITE_VERSION=d-${CI_COMMIT_SHORT_SHA}
+    - composer install --prefer-dist --optimize-autoloader
+    - php bin/console cache:warmup --env=dev
+    - yarn install
+    - yarn dev
+  script:
+    - serverless deploy --stage dev --param="SITE_VERSION=d-${CI_COMMIT_SHORT_SHA}" --verbose --force
+  environment:
+    name: dev
+    url: https://dev.symfony-bref-starter.com
+
+prod:
+  stage: deploy
+  when: manual
+  only:
+    - master
+  before_script:
+    - export SITE_VERSION=p-${CI_COMMIT_SHORT_SHA}
+    - composer install --prefer-dist --optimize-autoloader --no-dev
+    - php bin/console cache:warmup --env=prod
+    - yarn install
+    - yarn build
+    - yarn build:email
+  script:
+    - SLS_DEBUG=true serverless deploy --stage prod --param="SITE_VERSION=p-${CI_COMMIT_SHORT_SHA}" --verbose --force
+  environment:
+    name: prod
+    url: https://symfony-bref-starter.com

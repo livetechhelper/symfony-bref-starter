@@ -1,0 +1,60 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    #csrf_protection: true
+
+    # Note that the session will be started ONLY if you read or write from it.
+    session: true
+
+    #esi: true
+    #fragments: true
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file
+
+when@local:
+    framework:
+        #        session:
+        #            # set this to null for local dev
+        #            handler_id: AsyncAws\DynamoDbSession\SessionHandler
+        #            cookie_secure: auto
+        #            cookie_samesite: lax
+        #            cookie_lifetime: 259200
+        # leave as this as is quicker and doesn't need internet... but leave above for testing
+        session:
+            handler_id: null
+            storage_factory_id: session.storage.factory.native
+        cache:
+            pools:
+                data_cache:
+                    adapter: cache.adapter.filesystem
+#                    adapter: cache.dynamodb.adapter
+
+when@dev:
+    framework:
+        session:
+            # set this to null for local dev
+            handler_id: AsyncAws\DynamoDbSession\SessionHandler
+            cookie_secure: auto
+            cookie_samesite: lax
+            cookie_lifetime: 259200
+        cache:
+            pools:
+                data_cache:
+                    adapter: cache.dynamodb.adapter
+
+when@prod:
+    framework:
+        session:
+            # set this to null for local dev
+            handler_id: AsyncAws\DynamoDbSession\SessionHandler
+            cookie_secure: auto
+            cookie_samesite: lax
+            cookie_lifetime: 259200
+        cache:
+            pools:
+                data_cache:
+                    adapter: cache.dynamodb.adapter
