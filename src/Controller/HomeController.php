@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Message\TestMessage;
 use App\Service\RequestHelperService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class HomeController extends AbstractController
@@ -22,6 +25,19 @@ class HomeController extends AbstractController
 
         return $this->render('home/index.html.twig', [
             'data' => $data
+        ]);
+    }
+
+    #[Route('/test-message', name: 'app.test_message')]
+    public function testMessage(MessageBusInterface $bus): Response
+    {
+        $message = new TestMessage();
+        $message->setMessage("Hey there, this is a test message using SQS");
+        $bus->dispatch($message);
+
+        return new JsonResponse([
+            'message' => $message->getMessage(),
+            'log' => "Message successfully queued, look in your logs for the message being processed"
         ]);
     }
 }

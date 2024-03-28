@@ -35,6 +35,7 @@ cd /var/task
 # now actually initialize the project / install dependencies, etc.
 composer install
 yarn install
+yarn dev
 ```
 The above just creates a new project in your desired directory with the basic project structure and installs the required packages.
 
