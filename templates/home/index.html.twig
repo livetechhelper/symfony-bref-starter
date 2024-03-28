@@ -11,6 +11,16 @@
 <div class="example-wrapper">
     <h1>Hello there! ✅</h1>
 
-    If you can see this, you're on the right track, yay!
+    <p>If you can see this, you're on the right track, yay!</p>
+
+    <div>
+        <p>Below you can see the server params (these will be empty locally)</p>
+        <ul>
+            {% for field, value in data %}
+                <li><b>{{ field }}</b> - {{ value }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
 </div>
 {% endblock %}
