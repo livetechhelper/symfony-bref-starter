@@ -21,7 +21,7 @@ This project is designed to be a starting point for developers creating a new pr
 
 ### Initialize the project
 ```shell
-git clone ... YOUR_DIR
+git clone https://github.com/livetechhelper/symfony-bref-starter.git YOUR_DIR
 cd YOUR_DIR
 
 # I use docker so I don't have to mess around with PHP versions, etc. but you can
