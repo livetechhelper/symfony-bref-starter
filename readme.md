@@ -68,6 +68,8 @@ AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACCESS_SECRET_KEY
 This will be passed through to your docker image so you don't need to install and setup everything on your machine but can do everything from inside the docker containers.
 
 #### Domain Setup (AWS only for now - other providers not included in docs yet...)
+*Note: This is not a requirement, if you just want to see, you can get rid of the domain and view from the cloudfront URL you see when you run `serverless deploy`*
+
 Once you have the above setup (i.e. serveless installed, AWS account configured, etc.), you can setup your domain in Route53 using the steps below.
 
 1. Navigate to Route53 in your AWS console.
@@ -79,7 +81,10 @@ Once you have the above setup (i.e. serveless installed, AWS account configured,
 7. We will have 1 cert for the dev environment and one for the prod env (you can skip dev if you don't want it)
 8. For each domain, view the requested cert, it will be "pending validation" for a while
 9. You will see the option for "Create records in Route53", click this to have AWS auto add the CNAME records so you don't have to
-10. Copy the ARN for each and replace both the domain names and certs in your project's serverless.yaml 
+10. Create AAAA records for both dev and prod, you will get the option to link to an AWS resource, choose the corresponding cloudfront distribution
+11. Copy the ARN for each and replace both the domain names and certs in your project's serverless.yaml
+
+*Note: Sometimes even if everything in AWS says it's synced or up to date, it can take a while to actually answer for the domain / for DNS to propogate*
 
 ### Deploy your application
 This assumes that you have logged into the AWS cli and you have an authorized session in your terminal, if you do not, you will not be able to deploy. If you have followed the steps so far, you should do this inside the docker container which should have your access key id and secret already set.
@@ -87,6 +92,12 @@ This assumes that you have logged into the AWS cli and you have an authorized se
 ```shell
 # start with dev
 serverless delpoy --stage=dev
+```
+
+For production, you will need to build the application in prod first (see the [.gitlab-ci.yml](.gitlab-ci.yml)) for examples of how. Then run:
+```shell
+# deploy prod
+serverless delpoy --stage=prod
 ```
 
 ## Additional (Optional) Features
@@ -106,12 +117,24 @@ You can simply add a new Message class e.g.:
 ```shell
 src/Message/SomethingMessage
 ```
-If you wish for this to be asychronously handled using SQS, then you will need to implement the `AsyncMessageInterface`.
+If you wish for this to be asynchronously handled using SQS, then you will need to implement the `AsyncMessageInterface`.
 
 You can then add the message handler e.g.:
 ```shell
 src/MessageHandler/SomethingMessageHandler
 ```
+
+### DELETING the deployments
+If you no longer want to use the application and want to remove the stack from AWS, you can simply run
+```shell
+# remove dev
+serverless remove --stage=dev
+
+# remove prod
+serverless remove --stage=prod
+```
+
+*Note, this will NOT remove any DBs, certs or domains you have configured inside AWS, you will have to do those manually if you want to remove them*
 
 ### Creating Your Database(s) [TODO]
 While you do not have to use a database of course, this project does have this configured, however you will need to manually create your database in AWS, but the permissions are configured in the serverless.yaml to ensure your application can access it.

@@ -38,6 +38,7 @@ The configuration below is based off of the bref version, but in testing I neede
         "cloudfront:TagResource",
         "cloudfront:Get*",
         "cloudfront:List*",
+        "cloudfront:DeleteDistribution",
         "dynamodb:CreateTable",
         "dynamodb:DeleteTable",
         "dynamodb:DescribeTable",
