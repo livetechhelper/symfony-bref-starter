@@ -134,6 +134,8 @@ serverless remove --stage=dev
 serverless remove --stage=prod
 ```
 
+This might fail sometimes as you cannot delete a non-empty bucket in S3, so you might have to go and find the bucket, empty it and then re-run. If it still fails, you can try and delete the bucket itself then re-run. If all else fails, find the cloudformation stack in AWS and delete it from there.
+
 *Note, this will NOT remove any DBs, certs or domains you have configured inside AWS, you will have to do those manually if you want to remove them*
 
 ### Creating Your Database(s) [TODO]
