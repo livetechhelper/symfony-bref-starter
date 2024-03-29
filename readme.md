@@ -1,4 +1,4 @@
-![livetechhelper.com link](https://img.shields.io/badge/livetechhelper.com-get%20help%20with%20livetechhelper%2Fsymfony--bref--starter-blue?link=https%3A%2F%2Flivetechhelper.com%2Frepos%2Flivetechhelper%2Fsymfony-bref-starter)
+<a href="https://livetechhelper.com/repos/livetechhelper/symfony-bref-starter" target="_blank"><img src="https://img.shields.io/badge/Get_live_support-livetechhelper%2Fsymfony--bref--starter-blue" alt="Get help with livetechhelper/symfony-bref-starter" /></a>
 
 # Symfony Starter for Bref
 Looking to start a new symfony project and want things like:
