@@ -1,7 +1,9 @@
-## AWS IAM Role Config for Local User
+## AWS IAM Role Config for Local / Deploy User
 The configuration below is based off of the bref version, but in testing I needed to add some things, especially for a first time deploy.
 
-*Note: Here (for ease) I am adding wildcard permissions to resources (`"Resource": "*"`), this is not recommended*
+This is NOT the IAM config that will be used for your actual bref instance / lamda, this is just to be able to deploy, so you can create a policy with this configuration and create a user and key with that policy for your local development if you do deploys this way, or also another user for CI/CD, etc. 
+
+*Note: Here (for ease) I am adding some wildcard permissions to resources (`"Resource": "*"`), this is not recommended*
 
 ```json
 {
@@ -25,6 +27,11 @@ The configuration below is based off of the bref version, but in testing I neede
         "cloudformation:UpdateTerminationProtection",
         "cloudformation:ValidateTemplate",
         "cloudfront:CreateCloudFrontOriginAccessIdentity",
+        "cloudfront:UpdateCloudFrontOriginAccessIdentity",
+        "cloudfront:DeleteCloudFrontOriginAccessIdentity",
+        "cloudfront:GetCloudFrontOriginAccessIdentity",
+        "cloudfront:GetCloudFrontOriginAccessIdentityConfig",
+        "cloudfront:ListCloudFrontOriginAccessIdentities",
         "cloudfront:DescribeFunction",
         "cloudfront:DescribeKeyValueStore",
         "cloudfront:UpdateDistribution",
@@ -35,18 +42,21 @@ The configuration below is based off of the bref version, but in testing I neede
         "cloudfront:CreateOriginAccessControl",
         "cloudfront:CreateOriginRequestPolicy",
         "cloudfront:PublishFunction",
-        "cloudfront:TagResource",
         "cloudfront:Get*",
         "cloudfront:List*",
+        "cloudfront:TagResource",
         "cloudfront:DeleteDistribution",
         "dynamodb:CreateTable",
         "dynamodb:DeleteTable",
         "dynamodb:DescribeTable",
         "dynamodb:DescribeTimeToLive",
-        "dynamodb:UpdateTimeToLive",
         "dynamodb:TagResource",
+        "dynamodb:UpdateTimeToLive",
+        "ec2:AssociateDhcpOptions",
+        "ec2:AssociateRouteTable",
         "ec2:AttachInternetGateway",
         "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
         "ec2:CreateInternetGateway",
         "ec2:CreateNetworkAcl",
         "ec2:CreateNetworkAclEntry",
@@ -67,6 +77,8 @@ The configuration below is based off of the bref version, but in testing I neede
         "ec2:ModifyVpcAttribute",
         "ec2:CreateDhcpOptions",
         "ec2:DeleteDhcpOptions",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:RunInstances",
         "events:DeleteRule",
         "events:DescribeRule",
         "events:ListRuleNamesByTarget",
@@ -83,7 +95,6 @@ The configuration below is based off of the bref version, but in testing I neede
         "iam:GetRole",
         "iam:PassRole",
         "iam:PutRolePolicy",
-        "iam:TagRole",
         "iot:CreateTopicRule",
         "iot:DeleteTopicRule",
         "iot:DisableTopicRule",
@@ -101,6 +112,12 @@ The configuration below is based off of the bref version, but in testing I neede
         "logs:GetLogEvents",
         "logs:PutSubscriptionFilter",
         "logs:TagResource",
+        "rds:CreateDBSubnetGroup",
+        "rds:DeleteDBSubnetGroup",
+        "rds:CreateDBInstance",
+        "rds:DeleteDBInstance",
+        "rds:ModifyDBInstance",
+        "rds:ModifyDBSubnetGroup",
         "s3:CreateBucket",
         "s3:DeleteBucket",
         "s3:DeleteBucketPolicy",
