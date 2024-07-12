@@ -1,13 +1,3 @@
-when@local:
-    web_profiler:
-        toolbar: true
-        intercept_redirects: false
-
-    framework:
-        profiler:
-            only_exceptions: false
-            collect_serializer_data: true
-
 when@dev:
     web_profiler:
         toolbar: true
