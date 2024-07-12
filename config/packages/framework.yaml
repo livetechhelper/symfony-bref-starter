@@ -17,12 +17,12 @@ when@test:
 
 when@local:
     framework:
-        #        session:
-        #            # set this to null for local dev
-        #            handler_id: AsyncAws\DynamoDbSession\SessionHandler
-        #            cookie_secure: auto
-        #            cookie_samesite: lax
-        #            cookie_lifetime: 259200
+#        session:
+#            # set this to null for local dev
+#            handler_id: AsyncAws\DynamoDbSession\SessionHandler
+#            cookie_secure: auto
+#            cookie_samesite: lax
+#            cookie_lifetime: 259200
         # leave as this as is quicker and doesn't need internet... but leave above for testing
         session:
             handler_id: null

@@ -11,40 +11,40 @@ params:
     dev:
         APP_ENV: dev
         APP_DEBUG: true
-        website_url: dev.symfony-bref-starter.com
-        cert: arn:aws:acm:us-east-1:494849477578:certificate/c873b184-869b-487b-9a08-eb62333dfc3d
-#        DATABASE_URL: ${ssm:/symfony-bref-starter-dev/DATABASE_URL, ''}
+#        website_url: dev.symfony-bref-starter.com
+#        cert: arn:aws:acm:us-east-1:494849477578:certificate/c873b184-869b-487b-9a08-eb62333dfc3d
+#        DATABASE_URL: ${ssm:/symfony-bref-starter-dev/DATABASE_URL, ''} # this is if / when the DB URL is store in parameter store
 
     # NOTE: 4 characters is the max we can have for an env name, otherwise it goes over 64 char limit for some resources
-    # this casuses things to fail and it's not clear why, was stuck on this for hours...
+    # this causes things to fail and it's not clear why, was stuck on this for hours...
     prod:
         APP_ENV: prod
         APP_DEBUG: false
-        website_url: symfony-bref-starter.com
-        cert: arn:aws:acm:us-east-1:494849477578:certificate/a1ad246a-3a9d-4ca9-92fa-04558d560ec5
+#        website_url: symfony-bref-starter.com
+#        cert: arn:aws:acm:us-east-1:494849477578:certificate/a1ad246a-3a9d-4ca9-92fa-04558d560ec5
 #        DATABASE_URL: ${ssm:/symfony-bref-starter-prod/DATABASE_URL, ''}
 
 custom:
-    # all related to - serverless-vpc-plugin - so we don't have to provision anything manually
-    # this sets up a VPC, created NAT so we can talk to the internet
-    # https://www.serverless.com/plugins/serverless-vpc-plugin/
-#    vpcConfig:
-#        # we need the secrets manager
-#        services:
-#            - secretsmanager
-#            - ssm
-#            - dynamodb
-#        # we need to be able to access rds
-#        subnetGroups:
-#            - rds
-#        # create a NAT instance instead of a gateway (cheaper option for now)
-#        createNatInstance: true
+  # all related to - serverless-vpc-plugin - so we don't have to provision anything manually
+  # this sets up a VPC, created NAT so we can talk to the internet
+  # https://www.serverless.com/plugins/serverless-vpc-plugin/
+  vpcConfig:
+    # we need the secrets manager
+    #        services:
+    #            - secretsmanager
+    #            - ssm
+    # we need to be able to access rds
+    subnetGroups: # comment/remove this line and the one below if you do not want a DB
+      - rds
+    # create a NAT instance instead of a gateway (cheaper option for now)
+    createNatInstance: true
 
 provider:
     name: aws
     stage: dev
     runtime: provided.al2
     region: us-east-1
+    profile: default
     iamRoleStatements: # permissions for all of your functions can be set here
         # need to be able to inspect and write to the queue
         - Effect: Allow
@@ -81,19 +81,30 @@ provider:
         # Symfony environment variables
         APP_ENV: ${param:APP_ENV}
         APP_DEBUG: ${param:APP_DEBUG}
+        DATABASE_URL:
+          Fn::Join:
+            - ''
+            - - 'mysql://'
+              - "admin" # username
+              - ':'
+              - 'changeme' # password
+              - '@'
+              - !GetAtt RDSInstance.Endpoint.Address
+              - ':3306/'
+              - ${self:service}-${sls:stage}
 #        DATABASE_URL: ${param:DATABASE_URL}
         # the application will run behind CloudFront so we'll need to trust any incoming ip
         TRUSTED_PROXIES: 'REMOTE_ADDR'
         # https://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html'
         # TRUSTED_HOSTS is a regular expression so you'll need to replace '.' with '\.' and add '^' and '$'
-        TRUSTED_HOSTS: !Join ['\.', !Split ['.', '^${param:website_url}$']]
+#        TRUSTED_HOSTS: !Join ['\.', !Split ['.', '^${param:website_url}$']]
         MESSENGER_TRANSPORT_DSN: !Ref MainQueue
         DYNAMODB_CACHE_TABLE: !Ref DataCache
         DYNAMODB_SESSIONS_TABLE: !Ref SessionsTable
 
 plugins:
   - ./vendor/bref/bref
-#  - serverless-vpc-plugin
+  - serverless-vpc-plugin
   - serverless-lift
 
 functions:
@@ -101,31 +112,19 @@ functions:
         handler: public/index.php
         description: 'Main website'
         timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
-        layers:
-          - ${bref:layer.php-83-fpm}
+        runtime: php-83-fpm
         events:
-            - httpApi: '*'
+          - httpApi: '*'
+          - schedule:
+              rate: rate(5 minutes)
+              input:
+                warmer: true
 
-    # use e.g. vendor/bin/bref cli symfony-bref-starter-site-dev-console -- doctrine:schema:update --dump-sql
+    # use e.g. serverless bref:cli --stage=dev --args="doctrine:schema:update --dump-sql"
     sbs-con:
         handler: bin/console
         timeout: 120 # in seconds
-        layers:
-          - ${bref:layer.php-83} # PHP
-          - ${bref:layer.console} # The "console" layer
-
-    sbs-wrk:
-        handler: bin/consumer.php
-        timeout: 20 # in seconds
-        reservedConcurrency: 2 # max. 5 messages processed in parallel
-        layers:
-          - ${bref:layer.php-83} # PHP
-        events:
-            # Read more at https://www.serverless.com/framework/docs/providers/aws/events/sqs/
-            - sqs:
-                  arn: !GetAtt MainQueue.Arn
-                  batchSize: 1
-                  maximumConcurrency: 2 # minimum value is 2
+        runtime: php-83-console
 
 constructs:
     sbs-website:
@@ -133,8 +132,21 @@ constructs:
         assets:
             '/build/*': public/build
 #            '/bundles/*': public/bundles # enable if you have bundle assets
-        domain: ${param:website_url}
-        certificate: ${param:cert}
+#        domain: ${param:website_url}
+#        certificate: ${param:cert}
+
+    # note for queues, can override any AWS property with https://github.com/getlift/lift/blob/master/docs/queue.md#extensions
+    main-queue:
+      type: queue
+      worker:
+#        delay: 55 # use this if you want to delay the processing of the message by this amount in seconds
+        lambdaInsights: true #enables Lambda Insights for this function
+        handler: bin/consumer.php
+        runtime: php-83
+        timeout: 25 # in seconds
+        batchSize: 1 # only do 1 at a time
+        maxConcurrency: 2 # minimum value is 2
+        # The retry delay on the queue will be 10*6 => 60 seconds
 
 # Exclude files from deployment
 package:
@@ -201,30 +213,50 @@ resources:
               { AttributeName: expires, Enabled: true }
             BillingMode: PAY_PER_REQUEST
 
-# uncomment below if you're using an RDS
+        # comment out everything below if you don't want a DB
         # RDS databases should be put inside this security group
-#        DBSecurityGroup:
-#            Type: AWS::EC2::SecurityGroup
-#            Properties:
-#                GroupDescription: RDS database access from Lambda
-#                VpcId: !Ref VPC
-#                Tags:
-#                    -   Key: Name # The name displayed in the AWS console
-#                        Value: ${self:service}-${sls:stage}-db
-#                SecurityGroupIngress:
-#                    -   Description: Allow inbound MySQL access from Lambda
-#                        FromPort: 3306
-#                        ToPort: 3306
-#                        IpProtocol: tcp
-#                        # Accept connections from the Lambda security group
-#                        SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
-#
-#        AppSecurityGroupEgress:
-#            Type: AWS::EC2::SecurityGroupEgress
-#            Properties:
-#                Description: Allows Lambda to access MySQL in the DBSecurityGroup
-#                GroupId: !Ref AppSecurityGroup
-#                FromPort: 3306
-#                ToPort: 3306
-#                IpProtocol: tcp
-#                DestinationSecurityGroupId: !Ref DBSecurityGroup
+        DBSecurityGroup:
+            Type: AWS::EC2::SecurityGroup
+            Properties:
+                GroupDescription: RDS database access from Lambda
+                VpcId: !Ref VPC
+                Tags:
+                    -   Key: Name # The name displayed in the AWS console
+                        Value: ${self:service}-${sls:stage}-db
+                SecurityGroupIngress:
+                    -   Description: Allow inbound MySQL access from Lambda
+                        FromPort: 3306
+                        ToPort: 3306
+                        IpProtocol: tcp
+                        # Accept connections from the Lambda security group
+                        SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+
+        AppSecurityGroupEgress:
+            Type: AWS::EC2::SecurityGroupEgress
+            Properties:
+                Description: Allows Lambda to access MySQL in the DBSecurityGroup
+                GroupId: !Ref AppSecurityGroup
+                FromPort: 3306
+                ToPort: 3306
+                IpProtocol: tcp
+                DestinationSecurityGroupId: !Ref DBSecurityGroup
+
+#        RDSInstance:
+#          Type: AWS::RDS::DBInstance
+#          Properties:
+#            DBInstanceIdentifier: ${self:service}-${self:provider.stage}-db
+#            AllocatedStorage: 20
+#            DBInstanceClass: db.t3.micro # smallest instance
+#            Engine: mysql
+#            EngineVersion: '8.0'
+#            MasterUsername: admin
+#            MasterUserPassword: changeme
+#            DBName: # this can only contain alphanumeric characters
+#              Fn::Join:
+#                - ''
+#                - - ${self:service}
+#                  - ${sls:stage}
+#            VPCSecurityGroups:
+#              - !GetAtt DBSecurityGroup.GroupId
+#            DBSubnetGroupName:
+#              Ref: RDSSubnetGroup
