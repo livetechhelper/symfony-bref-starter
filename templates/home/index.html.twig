@@ -3,24 +3,50 @@
 {% block title %}Welcome to Symfony Bref Starter!{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-
-<div class="example-wrapper">
-    <h1>Hello there! ✅</h1>
-
-    <p>If you can see this, you're on the right track, yay!</p>
-
-    <div>
-        <p>Below you can see the server params (these will be empty locally)</p>
-        <ul>
-            {% for field, value in data %}
-                <li><b>{{ field }}</b> - {{ value }}</li>
-            {% endfor %}
-        </ul>
+<div class="card">
+    <div class="card-header">
+        <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">Hello there! ✅</h1>
     </div>
-
+    
+    <div class="card-body">
+        <p class="mb-4">If you can see this, you're on the right track, yay!</p>
+        
+        <div {{ stimulus_controller('hello', { name: 'Symfony Bref' }) }}>
+            <p class="mb-2">Stimulus controller example:</p>
+            <div {{ stimulus_target('hello', 'output') }} class="p-3 bg-primary-100 dark:bg-primary-900 rounded text-primary-800 dark:text-primary-200 mb-4"></div>
+            
+            <div class="bg-primary-50 dark:bg-primary-900 border border-primary-200 dark:border-primary-800 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-2">New Features</h3>
+                <p class="text-primary-700 dark:text-primary-300 mb-2">This project now includes:</p>
+                <ul class="list-disc list-inside text-primary-700 dark:text-primary-300 space-y-1">
+                    <li>Tailwind CSS for utility-first styling</li>
+                    <li>Dark mode support (toggle in the header)</li>
+                    <li>Stimulus.js for interactive components</li>
+                    <li><a href="{{ path('app.theme.list') }}" class="text-primary-600 dark:text-primary-400 underline">Customizable themes</a> with color palette support</li>
+                </ul>
+            </div>
+            
+            <h2 class="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Server Parameters</h2>
+            <p class="mb-2 text-gray-600 dark:text-gray-400">Below you can see the server params (these will be empty locally)</p>
+            
+            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-md">
+                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for field, value in data %}
+                        <li class="px-4 py-3 flex justify-between">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ field }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">{{ value }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <div class="flex justify-between">
+            <a href="{{ path('app.test_message') }}" class="btn btn-primary">Test SQS Message</a>
+            <a href="https://bref.sh/docs" target="_blank" class="btn btn-secondary">Bref Documentation</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Available Themes{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">Available Themes</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Choose a theme to preview or apply to your application</p>
+    </div>
+    
+    <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for key, theme in themes %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ theme.name }}</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Theme key: {{ key }}</p>
+                    </div>
+                    <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-between">
+                        <a href="{{ path('app.theme.preview', {themeKey: key}) }}" class="btn btn-primary text-sm">Preview</a>
+                        <button 
+                            class="btn btn-secondary text-sm"
+                            {{ stimulus_controller('theme-switcher', {
+                                themeKey: key,
+                                themeCssUrl: path('app.theme.get_css', {themeKey: key})
+                            }) }}
+                            {{ stimulus_action('theme-switcher', 'apply') }}
+                        >
+                            Apply Theme
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

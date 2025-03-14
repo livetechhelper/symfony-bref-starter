@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="h-full">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
         {% block stylesheets %}
@@ -10,9 +11,107 @@
 
         {% block javascripts %}
             {{ encore_entry_script_tags('app') }}
+            <script>
+                // Load saved theme if available
+                document.addEventListener('DOMContentLoaded', function() {
+                    const savedTheme = localStorage.getItem('app-theme');
+                    if (savedTheme) {
+                        fetch('/api/theme/' + savedTheme)
+                            .then(response => response.text())
+                            .then(css => {
+                                let themeStyle = document.getElementById('theme-custom-variables');
+                                if (!themeStyle) {
+                                    themeStyle = document.createElement('style');
+                                    themeStyle.id = 'theme-custom-variables';
+                                    document.head.appendChild(themeStyle);
+                                }
+                                themeStyle.textContent = css;
+                            })
+                            .catch(error => console.error('Error loading saved theme:', error));
+                    }
+                });
+            </script>
         {% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+        <div {{ stimulus_controller('theme') }} class="flex flex-col min-h-full">
+            <header class="bg-white dark:bg-gray-800 shadow">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <a href="{{ path('app.home') }}" class="text-xl font-bold text-primary-600 dark:text-primary-400">
+                            Symfony Bref Starter
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ path('app.theme.list') }}" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                            Themes
+                        </a>
+                        
+                        {% if app.user %}
+                            <div class="relative" {{ stimulus_controller('dropdown') }}>
+                                <button 
+                                    {{ stimulus_action('dropdown', 'toggle') }}
+                                    class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+                                >
+                                    <span>{{ app.user.fullName|default(app.user.email) }}</span>
+                                    <svg class="ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div 
+                                    {{ stimulus_target('dropdown', 'menu') }}
+                                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 hidden z-10"
+                                >
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
+                                    <a href="{{ path('app.security.logout') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Sign out</a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{{ path('app.security.login') }}" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                                Sign in
+                            </a>
+                            <a href="{{ path('app.security.register') }}" class="text-sm bg-primary-600 text-white px-3 py-2 rounded-md hover:bg-primary-700">
+                                Register
+                            </a>
+                        {% endif %}
+                        
+                        <button 
+                            {{ stimulus_action('theme', 'toggle') }}
+                            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            aria-label="Toggle dark mode"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 block dark:hidden text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="mb-4 {% if label == 'success' %}bg-green-100 border border-green-400 text-green-700{% elseif label == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded relative" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                
+                {% block body %}{% endblock %}
+            </main>
+
+            <footer class="bg-white dark:bg-gray-800 shadow-inner mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+                        <p>Symfony Bref Starter - A serverless Symfony starter kit</p>
+                        <p class="mt-1">Built with <a href="https://symfony.com" class="text-primary-600 dark:text-primary-400 hover:underline">Symfony</a> and <a href="https://bref.sh" class="text-primary-600 dark:text-primary-400 hover:underline">Bref</a></p>
+                    </div>
+                </div>
+            </footer>
+        </div>
     </body>
 </html>

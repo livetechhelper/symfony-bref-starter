@@ -6,4 +6,19 @@
  */
 import './styles/app.css';
 
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+// Import Stimulus controllers
+import { startStimulusApp } from '@symfony/stimulus-bridge';
+import '@hotwired/turbo';
+
+// Register Stimulus controllers
+export const app = startStimulusApp(require.context(
+    './controllers',
+    true,
+    /\.(j|t)sx?$/
+));
+
+// You can specify which controllers should be imported
+// import HelloController from './controllers/hello_controller';
+// app.register('hello', HelloController);
+
+console.log('Symfony Bref Starter - Frontend initialized! 🎉');

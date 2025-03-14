@@ -1,5 +1,3 @@
-version: "3.5"
-
 services:
   web:
     image: bref/php-83-fpm-dev:2

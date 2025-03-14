@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ theme.name }} Theme Preview{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        {% for name, value in cssVariables %}
+        {{ name }}: {{ value }};
+        {% endfor %}
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">{{ theme.name }} Theme</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">Preview of the {{ theme.name }} theme</p>
+        </div>
+        <div>
+            <a href="{{ path('app.theme.list') }}" class="btn btn-secondary">Back to Themes</a>
+            <button 
+                class="btn btn-primary ml-2"
+                {{ stimulus_controller('theme-switcher', {
+                    themeKey: themeKey,
+                    themeCssUrl: path('app.theme.get_css', {themeKey: themeKey})
+                }) }}
+                {{ stimulus_action('theme-switcher', 'apply') }}
+            >
+                Apply Theme
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Color Palette</h2>
+        
+        <div class="mb-8">
+            <h3 class="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">Primary Colors</h3>
+            <div class="grid grid-cols-11 gap-1">
+                {% for shade in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] %}
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded bg-primary-{{ shade }} border border-gray-200 dark:border-gray-700 shadow-sm"></div>
+                        <span class="text-xs mt-1 text-gray-600 dark:text-gray-400">{{ shade }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h3 class="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">Secondary Colors</h3>
+            <div class="grid grid-cols-11 gap-1">
+                {% for shade in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] %}
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded bg-secondary-{{ shade }} border border-gray-200 dark:border-gray-700 shadow-sm"></div>
+                        <span class="text-xs mt-1 text-gray-600 dark:text-gray-400">{{ shade }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">UI Components</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-medium mb-3 text-gray-700 dark:text-gray-300">Buttons</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn btn-primary">Primary Button</button>
+                    <button class="btn btn-secondary">Secondary Button</button>
+                    <button class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Default Button</button>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-medium mb-3 text-gray-700 dark:text-gray-300">Cards</h3>
+                <div class="card w-full max-w-xs">
+                    <div class="card-header">
+                        <h4 class="font-medium">Card Title</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-sm">This is a sample card with the current theme applied.</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary text-sm">Action</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
