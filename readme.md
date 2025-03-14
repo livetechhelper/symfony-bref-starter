@@ -1,150 +1,274 @@
-<a href="https://livetechhelper.com/repos/livetechhelper/symfony-bref-starter" target="_blank"><img src="https://img.shields.io/badge/Get_live_support-livetechhelper%2Fsymfony--bref--starter-blue" alt="Get help with livetechhelper/symfony-bref-starter" /></a>
+# Symfony Bref Starter
 
-# Symfony Starter for Bref
-Looking to start a new symfony project and want things like:
- - Deploy to AWS lambda (zero to little infrastructure + huge scalability)
- - Learning how to use [bref](https://bref.sh) (serverless for PHP)
- - Asynchronous message handling (using AWS SQS or other providers)
+A production-ready starter template for building serverless PHP applications using Symfony and AWS Lambda via Bref. This template provides a complete foundation for developing, deploying, and maintaining serverless PHP applications with enterprise-grade features and best practices.
 
-This project is aimed at you! Get started and don't worry about deployments for your symfony projects. Easy dev/prod setup and message queue handling. 
+## 🌟 Features
 
+- **Serverless Architecture**:
+  - Built on AWS Lambda using [Bref](https://bref.sh/)
+  - Automatic scaling and pay-per-use pricing
+  - Zero server maintenance
+  - High availability across multiple AZs
 
-## Why Bref?
-[bref](https://bref.sh) is a fantastic and well tested way of running PHP applications via serverless, handling easy deployments and environments on AWS. Projects using bref (as of March 2024) serve over 30 BILLION requests per month! 
-Thanks to [Matthieu Napoli](https://github.com/mnapoli) for all of his work over the years to make it so easy and for the tools he's added to the stack to make things that much easier like:
- - [Bref Dashboard](https://dashboard.bref.sh/) - instead of struggling with trying to setup your own in AWS, this automatically recognizes your applications and lets you view performance, logs, etc. in a standalone desktop app
- - [7777](https://port7777.com/) - Handles remote access to your private DB instances on AWS. This is a huge timesaver and lets you keep your DBs where they should be (not public)
- - [Serverless Visually Explained](https://serverless-visually-explained.com/) - For those that are not too familiar with serverless, or just want a refresher, this course it fantastic and explains everything VERY well with great visual aids
+- **Modern PHP Stack**:
+  - Symfony 7.2 framework
+  - PHP 8.3 with JIT compilation
+  - Composer 2.x dependency management
+  - PSR standards compliance
 
-## Getting Started
-If you have an existing Symfony (or other PHP framework / standalone application), you can view the documentation on [bref.sh](https://bref.sh) for guides of how to do this. 
+- **Authentication & Security**:
+  - Complete user management system
+  - Secure password handling
+  - CSRF protection
+  - AWS security best practices
+  - See [Security Guide](docs/security.md)
 
-This project is designed to be a starting point for developers creating a new project and want to start with all of the common use cases covered without specializing too much. This is based off of the symfony starter project and I have just added some basic setup and configuration to get you started.
+- **Theme System**:
+  - Light/dark mode with persistent settings
+  - Tailwind CSS for responsive design
+  - Modern UI components
+  - Customizable themes
 
-### Initialize the project
-```shell
-git clone https://github.com/livetechhelper/symfony-bref-starter.git YOUR_DIR
-cd YOUR_DIR
+- **Serverless Infrastructure**:
+  - API Gateway for HTTP routing
+  - RDS for scalable database
+  - DynamoDB for sessions and cache
+  - SQS for message queues
+  - CloudFront for global asset delivery
+  - See [AWS Setup Guide](docs/aws-setup.md)
 
-# I use docker so I don't have to mess around with PHP versions, etc. but you can
-# skip this part and do these locally if you want to but it also includes the DB...
-docker-compose up -d
-# go into the container
-docker exec -ti symfony_bref_starter_dev_php bash
-# navigate to the app dir
-cd /var/task
+- **Developer Experience**:
+  - Docker-based local development
+  - Hot-reloading for assets
+  - Symfony debug toolbar
+  - Comprehensive logging
+  - Detailed documentation
 
-# now actually initialize the project / install dependencies, etc.
-composer install
-yarn install
-yarn dev
+## 📋 Prerequisites
+
+Before you begin, ensure you have:
+
+- Docker and Docker Compose installed
+- AWS Account with billing enabled
+- AWS CLI installed and configured
+- Node.js 18+ and Yarn
+- Serverless Framework CLI (`npm install -g serverless`)
+
+See [Getting Started Guide](docs/getting-started.md) for detailed setup instructions.
+
+## 🚀 Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/symfony-bref-starter.git
+   cd symfony-bref-starter
+   ```
+
+2. Start the development environment:
+   ```bash
+   docker compose up -d
+   ```
+
+3. Install dependencies:
+   ```bash
+   docker compose exec -w /var/task dev_php composer install
+   yarn install
+   ```
+
+4. Build assets:
+   ```bash
+   yarn dev
+   ```
+
+5. Access the application:
+   - Website: [http://localhost:8011](http://localhost:8011)
+   - Symfony debug toolbar enabled in dev environment
+
+## 📚 Documentation
+
+### Core Guides
+- [Getting Started Guide](docs/getting-started.md)
+  - Local development setup
+  - Docker environment
+  - Initial configuration
+  - First deployment
+
+- [AWS Configuration](docs/aws-setup.md)
+  - IAM roles and permissions
+  - VPC setup
+  - RDS configuration
+  - CloudFront distribution
+  - Parameter Store setup
+
+- [Deployment Guide](docs/deployment.md)
+  - Deployment process
+  - Environment configuration
+  - Database migrations
+  - Asset management
+  - Rollback procedures
+
+### Advanced Topics
+- [Security Configuration](docs/security.md)
+  - Authentication setup
+  - Password management
+  - CSRF protection
+  - AWS security
+  - Session handling
+
+- [Monitoring Guide](docs/monitoring.md)
+  - CloudWatch metrics
+  - X-Ray tracing
+  - Error tracking
+  - Health checks
+  - Performance monitoring
+
+- [Performance Tuning](docs/performance.md)
+  - Cold start optimization
+  - Database optimization
+  - Caching strategies
+  - Asset delivery
+  - Lambda configuration
+
+## 🏗️ Architecture
+
+The application uses a modern serverless architecture:
+
 ```
-The above just creates a new project in your desired directory with the basic project structure and installs the required packages.
-
-#### View the Project
-If everything has worked so far, you should be able to see the project locally here:
-[http://localhost:8011/](http://localhost:8011/)
-
-You should see "Hello there!" 
-
-*Note: You can also use `symfony:server:start` as well, especially if you need SSL locally but you will have to change the DB to point to the right host (outside of docker).*
-
-### AWS Setup
-While things are mostly automated, there are still the following requirements:
- - An AWS account with billing enabled / setup
- - A configured domain in Route53 (we will cover how to do this below)
- - Valid AWS credentials (key and secret - we will also cover this)
-
-#### AWS Account Setup
-As this is already documented on the bref project, you can follow the (better) documentation here to setup the basics: [Bref Setup](https://bref.sh/docs/setup).
-
-I have included an example (working) IAM role JSON as I needed to make some changes: [IAM ROLE CONFIG](docs/configs/iam_role.md)
-
-#### Set AWS config in .env.local
-Create a new `.env.local` file in the root of your project and add the details of the key you created in the previous steps:
-```shell
-APP_ENV=local
-AWS_ACCESS_KEY_ID=REPLACE_WITH_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACCESS_SECRET_KEY
-```
-This will be passed through to your docker image so you don't need to install and setup everything on your machine but can do everything from inside the docker containers.
-
-#### Domain Setup (AWS only for now - other providers not included in docs yet...)
-*Note: This is not a requirement, if you just want to see, you can get rid of the domain and view from the cloudfront URL you see when you run `serverless deploy`*
-
-Once you have the above setup (i.e. serveless installed, AWS account configured, etc.), you can setup your domain in Route53 using the steps below.
-
-1. Navigate to Route53 in your AWS console.
-2. Follow the instructions to create a new "Hosted Zone" for your new domain (ensure it's a public hosted zone)
-3. Once it's setup, navigate to your domain provider and update the DNS records to point DNS to AWS
-4. Now we need to setup certs, we will do manually, but this can be done in serverless configs (see [Tiago Boeing's Guide](https://tiagoboeing.medium.com/serverless-framework-aws-automatically-creating-certificate-and-domain-for-your-app-98cd5e31b66c))
-5. Navigate to AWS Certificate Manager in AWS console.
-6. Request a certificate (ensure it's a public SSL/TLS certificate by Amazon).
-7. We will have 1 cert for the dev environment and one for the prod env (you can skip dev if you don't want it)
-8. For each domain, view the requested cert, it will be "pending validation" for a while
-9. You will see the option for "Create records in Route53", click this to have AWS auto add the CNAME records so you don't have to
-10. Create AAAA records for both dev and prod, you will get the option to link to an AWS resource, choose the corresponding cloudfront distribution
-11. Copy the ARN for each and replace both the domain names and certs in your project's serverless.yaml
-
-*Note: Sometimes even if everything in AWS says it's synced or up to date, it can take a while to actually answer for the domain / for DNS to propogate*
-
-### Deploy your application
-This assumes that you have logged into the AWS cli and you have an authorized session in your terminal, if you do not, you will not be able to deploy. If you have followed the steps so far, you should do this inside the docker container which should have your access key id and secret already set.
-
-```shell
-# start with dev
-serverless delpoy --stage=dev
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  CloudFront │ ──▶ │ API Gateway │ ──▶ │   Lambda    │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+                                              ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  DynamoDB   │ ◀── │    RDS      │ ◀── │    SQS      │
+└─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-For production, you will need to build the application in prod first (see the [.gitlab-ci.yml](.gitlab-ci.yml)) for examples of how. Then run:
-```shell
-# deploy prod
-serverless delpoy --stage=prod
+### Key Components
+
+- **Application Layer**: PHP 8.3 + Symfony 7.2
+  - Handles HTTP requests via Lambda
+  - Processes background jobs
+  - Manages application logic
+
+- **Database Layer**: MySQL 8.0 on Amazon RDS
+  - Stores application data
+  - Automatic backups
+  - Multi-AZ deployment option
+
+- **Caching Layer**: DynamoDB
+  - Session storage
+  - Application cache
+  - Distributed locking
+
+- **Message Queue**: Amazon SQS
+  - Asynchronous processing
+  - Event-driven architecture
+  - Dead letter queues
+
+- **Content Delivery**: CloudFront CDN
+  - Global asset delivery
+  - SSL/TLS termination
+  - DDoS protection
+
+## 🛠️ Development
+
+### Local Development
+
+The development environment closely matches production:
+
+```bash
+# Start containers
+docker compose up -d
+
+# Access container shell
+docker compose exec -w /var/task dev_php bash
+
+# Run Symfony commands
+php bin/console cache:clear
 ```
 
-## Additional (Optional) Features
-There are other features included by default in the project, you do not have to use them but I found them to be pretty common and sometimes complex to setup, so I tried to include what I think is a good starter and included my most common building blocks.
+### Asset Management
 
-### Sessions and Data Cache
-I had some difficulties in setting this up for many reasons, so I put it in here so this pain could be avoided. You do not have to use this and can remove the config for this.
+```bash
+# Watch for changes
+yarn watch
 
-In this setup, I use some custom things because I do not want the sessions table to be the same as the data cache table so I have overriden things in a (probably not so correct way), any improvements welcome, but if you just want something working out of the box, it does work or will at least point you in the right direction.
-
-It uses DynamoDB for this as there is on demand pricing and you don't need to pay for instances so it helps keep costs down.
-
-### Symfony Messenger (Using AWS SQS)
-I have included an example, I normally use this for emails, or interacting with 3rd party APIs. The test doesn't really do anything but you can see inside AWS (or bref dashboard if using) the throughput, and also failures that end up in the Dead Letter Queue.
-
-You can simply add a new Message class e.g.:
-```shell
-src/Message/SomethingMessage
-```
-If you wish for this to be asynchronously handled using SQS, then you will need to implement the `AsyncMessageInterface`.
-
-You can then add the message handler e.g.:
-```shell
-src/MessageHandler/SomethingMessageHandler
+# Build for production
+yarn build
 ```
 
-### DELETING the deployments
-If you no longer want to use the application and want to remove the stack from AWS, you can simply run
-```shell
-# remove dev
-serverless remove --stage=dev
+### Testing
 
-# remove prod
-serverless remove --stage=prod
+```bash
+# Run test suite
+docker compose exec -w /var/task dev_php php bin/phpunit
+
+# Run specific test
+docker compose exec -w /var/task dev_php php bin/phpunit tests/path/to/test
 ```
 
-This might fail sometimes as you cannot delete a non-empty bucket in S3, so you might have to go and find the bucket, empty it and then re-run. If it still fails, you can try and delete the bucket itself then re-run. If all else fails, find the cloudformation stack in AWS and delete it from there.
+## 🚀 Deployment
 
-*Note, this will NOT remove any DBs, certs or domains you have configured inside AWS, you will have to do those manually if you want to remove them*
+1. Configure AWS credentials:
+   ```bash
+   aws configure
+   ```
 
-### Creating Your Database(s) [TODO]
-While you do not have to use a database of course, this project does have this configured, however you will need to manually create your database in AWS, but the permissions are configured in the serverless.yaml to ensure your application can access it.
+2. Deploy to development:
+   ```bash
+   serverless deploy --stage dev
+   ```
 
-*Note: This is using AWS RDS and not Aurora, so it's just an example to get you started.*
+3. Deploy to production:
+   ```bash
+   serverless deploy --stage prod
+   ```
 
-1. Navigate to the RDS section in your AWS console
-2. Setup the DB
-3. ... @TODO - actually complete this section / guide...
+See the [Deployment Guide](docs/deployment.md) for complete instructions.
+
+## 🔒 Security Features
+
+- User authentication system
+- Password reset functionality
+- CSRF protection
+- Secure session handling
+- AWS security best practices
+- See [Security Guide](docs/security.md)
+
+## 📊 Monitoring Features
+
+- CloudWatch integration
+- X-Ray distributed tracing
+- Custom metrics
+- Error tracking
+- Health checks
+- See [Monitoring Guide](docs/monitoring.md)
+
+## 🎯 Performance Features
+
+- Cold start optimization
+- Asset optimization
+- Multi-layer caching
+- Database optimization
+- Lambda tuning
+- See [Performance Guide](docs/performance.md)
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+- Code of Conduct
+- Development process
+- Pull request guidelines
+- Coding standards
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Bref](https://bref.sh/) - PHP Runtime for AWS Lambda
+- [Symfony](https://symfony.com/) - PHP Framework
+- [Serverless Framework](https://www.serverless.com/) - Infrastructure as Code
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
