@@ -318,3 +318,74 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Symfony](https://symfony.com/) - PHP Framework
 - [Serverless Framework](https://www.serverless.com/) - Infrastructure as Code
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+
+## AWS Configuration
+
+### Setup Instructions
+
+1. **Set AWS Account ID and Region**:
+   - Open `serverless.yml` and set your AWS account ID and region in the `custom` section:
+
+   ```yaml
+   custom:
+     awsAccountId: 'YOUR_AWS_ACCOUNT_ID'
+     awsRegion: 'YOUR_AWS_REGION'
+   ```
+
+   Replace `'YOUR_AWS_ACCOUNT_ID'` and `'YOUR_AWS_REGION'` with your actual AWS account ID and preferred region.
+
+2. **Service Name**:
+   - Ensure the `service` field in `serverless.yml` reflects your application name:
+
+   ```yaml
+   service: your-service-name
+   ```
+
+### Custom Domains (Optional)
+
+By default, the configuration uses AWS's default URLs. If you want to use a custom domain, you'll need to:
+
+1. Register a domain in Route53 or point your domain to Route53.
+2. Create an ACM certificate in `us-east-1` (for CloudFront).
+3. Update the certificate ARN in `serverless.yml`.
+4. Uncomment the trusted hosts configuration in the environment section.
+
+Refer to `docs/aws-setup.md#custom-domains` for detailed instructions.
+
+### RDS Instance Creation
+
+By default, the configuration includes an RDS instance setup (commented out). If you uncomment this section, an RDS instance will be created, incurring additional costs:
+
+- RDS instance: approximately $15/month
+- VPC configuration: approximately $5/month
+
+Ensure you understand these costs before enabling this configuration.
+
+### IAM and AWS CLI Setup
+
+Before deploying, ensure you have:
+
+1. **IAM Setup**:
+   - Create an IAM user with the permissions specified in `docs/iam_role.md`.
+   - This user should have permissions for managing Lambda, S3, CloudFront, RDS, and other AWS services used by this application.
+   - Note the AWS Access Key ID and Secret Access Key.
+
+2. **AWS CLI Configuration**:
+
+```bash
+aws configure
+```
+
+Enter your AWS Access Key ID, Secret Access Key, default region (e.g., `us-east-1`), and output format (`json`).
+
+### Deployment Instructions
+
+Deploy your application using Serverless:
+
+```bash
+serverless deploy --stage=dev
+```
+
+Ensure you have the necessary permissions and configurations set up as described above.
+
+This documentation ensures clarity on setup, costs, and deployment steps.

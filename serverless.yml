@@ -2,322 +2,326 @@
 # Use a short, descriptive name that reflects your application
 service: symfony-bref-starter
 
+custom:
+  awsAccountId: '494849477578'
+  awsRegion: 'us-west-1'
+
+  ################################################################################
+  # VPC Configuration (for RDS and other VPC resources)
+  ################################################################################
+  # Configuration for serverless-vpc-plugin
+  # This plugin automatically creates a VPC with public and private subnets,
+  # NAT Gateway/Instance, and necessary routing tables
+  # See: https://github.com/smoketurner/serverless-vpc-plugin
+  vpcConfig:
+    # Enable these services if you need to access AWS Secrets Manager or Parameter Store
+    # from within your VPC (requires VPC endpoints)
+    services:
+      - secretsmanager
+      - ssm
+
+    # Creates a DB subnet group for RDS instances
+    # This ensures your RDS instance is created in the private subnets
+    subnetGroups:
+      - rds
+
+    # Use NAT Instance instead of NAT Gateway for cost optimization
+    # NAT Gateway costs ~$32/month, while a t3.nano NAT Instance costs ~$4/month
+    # Trade-off: NAT Instance has lower bandwidth and availability
+    createNatInstance: true
+
 ################################################################################
 # Parameters Configuration
 # Different values for different environments (dev/prod)
 ################################################################################
 params:
-    # Development environment settings
-    dev:
-        APP_ENV: dev
-        APP_DEBUG: true
-        # Custom domain for your application (optional)
-        # When using custom domains, you'll need to:
-        # 1. Have a registered domain in Route53 or point your domain to Route53
-        # 2. Create an ACM certificate in us-east-1 (for CloudFront)
-        # 3. Update the cert ARN below
-        # See: docs/aws-setup.md#custom-domains
-        website_url: dev.symfony-bref-starter.com
-        cert: arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID
-        # For secure credentials management, use AWS Parameter Store
-        # See: docs/security.md#aws-parameter-store
-        DATABASE_URL: ${ssm:/${self:service}-dev/DATABASE_URL, ''}
+  # Development environment settings
+  dev:
+    APP_ENV: dev
+    APP_DEBUG: true
+    # Custom domain for your application (optional)
+    # When using custom domains, you'll need to:
+    # 1. Have a registered domain in Route53 or point your domain to Route53
+    # 2. Create an ACM certificate in us-east-1 (for CloudFront)
+    # 3. Update the cert ARN below
+    # 4. Uncomment the trusted hosts configuration in the environment section
+    # See: docs/aws-setup.md#custom-domains
+    # website_url: dev.symfony-bref-starter.com
+    # cert: arn:aws:acm:${self:custom.awsRegion}:${self:custom.awsAccountId}:certificate/CERT_ID
+    # For secure credentials management, use AWS Parameter Store
+    # See: docs/security.md#aws-parameter-store
+    # DATABASE_URL: ${ssm:/${self:service}-dev/DATABASE_URL, ''}
 
-    # Production environment settings
-    # NOTE: Environment names should be max 4 characters to avoid AWS 64-character resource name limits
-    # This is important because AWS has service limits on resource names, and many resources
-    # are named using a combination of service name, stage, and resource type
-    prod:
-        APP_ENV: prod
-        APP_DEBUG: false
-        website_url: symfony-bref-starter.com
-        cert: arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID
-        DATABASE_URL: ${ssm:/${self:service}-prod/DATABASE_URL, ''}
-
-################################################################################
-# VPC Configuration (for RDS and other VPC resources)
-################################################################################
-custom:
-    # Configuration for serverless-vpc-plugin
-    # This plugin automatically creates a VPC with public and private subnets,
-    # NAT Gateway/Instance, and necessary routing tables
-    # See: https://github.com/smoketurner/serverless-vpc-plugin
-    vpcConfig:
-        # Enable these services if you need to access AWS Secrets Manager or Parameter Store
-        # from within your VPC (requires VPC endpoints)
-        services:
-            - secretsmanager
-            - ssm
-        
-        # Creates a DB subnet group for RDS instances
-        # This ensures your RDS instance is created in the private subnets
-        subnetGroups:
-            - rds
-        
-        # Use NAT Instance instead of NAT Gateway for cost optimization
-        # NAT Gateway costs ~$32/month, while a t3.nano NAT Instance costs ~$4/month
-        # Trade-off: NAT Instance has lower bandwidth and availability
-        createNatInstance: true
+  # Production environment settings
+  # NOTE: Environment names should be max 4 characters to avoid AWS 64-character resource name limits
+  # This is important because AWS has service limits on resource names, and many resources
+  # are named using a combination of service name, stage, and resource type
+  prod:
+    APP_ENV: prod
+    APP_DEBUG: false
+    # website_url: symfony-bref-starter.com
+    # cert: arn:aws:acm:${self:custom.awsRegion}:${self:custom.awsAccountId}:certificate/CERT_ID
+    # DATABASE_URL: ${ssm:/${self:service}-prod/DATABASE_URL, ''}
 
 ################################################################################
 # AWS Provider Configuration
 ################################################################################
 provider:
-    name: aws
-    stage: dev
-    runtime: provided.al2
-    region: us-east-1
-    profile: default
+  name: aws
+  stage: dev
+  runtime: provided.al2
+  region: ${self:custom.awsRegion}
+  profile: default
 
-    # IAM permissions for Lambda functions
-    iamRoleStatements:
-        # SQS permissions for message queue
-        - Effect: Allow
-          Action: sqs:*
-          Resource:
-              - !GetAtt MainQueue.Arn
+  # IAM permissions for Lambda functions
+  iamRoleStatements:
+    # SQS permissions for message queue
+    - Effect: Allow
+      Action: sqs:*
+      Resource:
+        - !GetAtt MainQueue.Arn
 
-        # Parameter Store permissions for secure configuration
-        - Effect: Allow
-          Action:
-            - ssm:Describe*
-            - ssm:Get*
-            - ssm:List*
-          # Use service name for consistent parameter paths
-          Resource: arn:aws:ssm:${self:provider.region}:ACCOUNT_ID:parameter/${self:service}-${param:APP_ENV}/*
+    # Parameter Store permissions for secure configuration
+    - Effect: Allow
+      Action:
+        - ssm:Describe*
+        - ssm:Get*
+        - ssm:List*
+      # Use service name for consistent parameter paths
+      Resource: arn:aws:ssm:${self:custom.awsRegion}:${self:custom.awsAccountId}:parameter/${self:service}-${param:APP_ENV}/*
 
-        # DynamoDB permissions for cache and sessions
-        - Effect: Allow
-          Action:
-            - dynamodb:DescribeTable
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource:
-            - !GetAtt DataCache.Arn
-            - !GetAtt SessionsTable.Arn
+    # DynamoDB permissions for cache and sessions
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - !GetAtt DataCache.Arn
+        - !GetAtt SessionsTable.Arn
 
-        # Uncomment and update ARN for SES email sending
-        #- Effect: Allow
-        #  Action:
-        #    - ses:*
-        #  Resource: YOUR_SES_ARN
+    # Uncomment and update ARN for SES email sending
+    #- Effect: Allow
+    #  Action:
+    #    - ses:*
+    #  Resource: YOUR_SES_ARN
 
-    # Environment variables available to all functions
-    environment:
-        APP_ENV: ${param:APP_ENV}
-        APP_DEBUG: ${param:APP_DEBUG}
-        
-        # Database configuration options:
-        # 1. Direct RDS connection (not recommended for production)
-        #    Simple but exposes credentials in CloudFormation
-        DATABASE_URL:
-          Fn::Join:
-            - ''
-            - - 'mysql://'
-              - "admin"
-              - ':'
-              - 'changeme'
-              - '@'
-              - !GetAtt RDSInstance.Endpoint.Address
-              - ':3306/'
-              - ${self:service}-${sls:stage}
-        
-        # 2. Using Parameter Store (recommended for production)
-        #    Secure and flexible, but requires additional setup
-        #DATABASE_URL: ${param:DATABASE_URL}
-        
-        # Security settings
-        # TRUSTED_PROXIES is needed because Lambda is always accessed through API Gateway
-        TRUSTED_PROXIES: 'REMOTE_ADDR'
-        # TRUSTED_HOSTS pattern is important for preventing HTTP Host header attacks
-        # See: https://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
-        TRUSTED_HOSTS: !Join ['\.', !Split ['.', '^${param:website_url}$']]
-        
-        # Queue and storage configuration
-        MESSENGER_TRANSPORT_DSN: !Ref MainQueue
-        DYNAMODB_CACHE_TABLE: !Ref DataCache
-        DYNAMODB_SESSIONS_TABLE: !Ref SessionsTable
+  # Environment variables available to all functions
+  environment:
+    APP_ENV: ${param:APP_ENV}
+    APP_DEBUG: ${param:APP_DEBUG}
+    
+    # Database configuration options:
+    # 1. Direct RDS connection (not recommended for production)
+    #    Simple but exposes credentials in CloudFormation
+    DATABASE_URL:
+      Fn::Join:
+        - ''
+        - - 'mysql://'
+          - "admin"
+          - ':'
+          - 'changeme'
+          - '@'
+          - !GetAtt RDSInstance.Endpoint.Address
+          - ':3306/'
+          - ${self:service}-${sls:stage}
+    
+    # 2. Using Parameter Store (recommended for production)
+    #    Secure and flexible, but requires additional setup
+    #DATABASE_URL: ${param:DATABASE_URL}
+    
+    # Security settings
+    # TRUSTED_PROXIES is needed because Lambda is always accessed through API Gateway
+    TRUSTED_PROXIES: 'REMOTE_ADDR'
+    # TRUSTED_HOSTS pattern is important for preventing HTTP Host header attacks
+    # See: https://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
+    # TRUSTED_HOSTS: !Join ['\.', !Split ['.', '^${param:website_url}$']]
+    
+    # Queue and storage configuration
+    MESSENGER_TRANSPORT_DSN: !Ref MainQueue
+    DYNAMODB_CACHE_TABLE: !Ref DataCache
+    DYNAMODB_SESSIONS_TABLE: !Ref SessionsTable
 
 ################################################################################
 # Plugins Configuration
 ################################################################################
 plugins:
-    - ./vendor/bref/bref
-    - serverless-vpc-plugin
-    - serverless-lift
+  - ./vendor/bref/bref
+  - serverless-vpc-plugin
+  - serverless-lift
 
 ################################################################################
 # Lambda Functions Configuration
 ################################################################################
 functions:
-    # Main web application handler
-    sbs-web:
-        handler: public/index.php
-        description: 'Main website'
-        timeout: 28 # API Gateway limit is 29 seconds
-        runtime: php-83-fpm
-        events:
-            - httpApi: '*'
-            - schedule:
-                rate: rate(5 minutes)
-                input:
-                    warmer: true
+  # Main web application handler
+  sbs-web:
+    handler: public/index.php
+    description: 'Main website'
+    timeout: 28 # API Gateway limit is 29 seconds
+    runtime: php-83-fpm
+    events:
+      - httpApi: '*'
+      - schedule:
+          rate: rate(5 minutes)
+          input:
+            warmer: true
 
-    # Console commands handler
-    # Usage: serverless bref:cli --stage=dev --args="doctrine:schema:update --dump-sql"
-    sbs-con:
-        handler: bin/console
-        timeout: 120
-        runtime: php-83-console
+  # Console commands handler
+  # Usage: serverless bref:cli --stage=dev --args="doctrine:schema:update --dump-sql"
+  sbs-con:
+    handler: bin/console
+    timeout: 120
+    runtime: php-83-console
 
 ################################################################################
 # Lift Constructs Configuration
 ################################################################################
 constructs:
-    # Website asset handling
-    sbs-website:
-        type: server-side-website
-        assets:
-            '/build/*': public/build
-            '/_wdt/*': public/_wdt
-            '/_profiler/*': public/_profiler
-            '/bundles/*': public/bundles # Enable for bundle assets
-        #domain: ${param:website_url}
-        #certificate: ${param:cert}
+  # Website asset handling
+  sbs-website:
+    type: server-side-website
+    assets:
+      '/build/*': public/build
+      '/_wdt/*': public/_wdt
+      '/_profiler/*': public/_profiler
+      '/bundles/*': public/bundles # Enable for bundle assets
+    #domain: ${param:website_url}
+    #certificate: ${param:cert}
 
-    # Queue worker configuration
-    main-queue:
-        type: queue
-        worker:
-            lambdaInsights: true
-            handler: bin/consumer.php
-            runtime: php-83
-            timeout: 25
-            batchSize: 1
-            maxConcurrency: 2
-            #delay: 55 # Optional message processing delay in seconds
+  # Queue worker configuration
+  main-queue:
+    type: queue
+    worker:
+      lambdaInsights: true
+      handler: bin/consumer.php
+      runtime: php-83
+      timeout: 25
+      batchSize: 1
+      maxConcurrency: 2
+      #delay: 55 # Optional message processing delay in seconds
 
 ################################################################################
 # Deployment Package Configuration
 ################################################################################
 package:
-    patterns:
-        # Exclude development files
-        - '!assets/**'
-        - '!node_modules/**'
-        - '!public/build/**'
-        - '!tests/**'
-        - '!var/**'
-        # Include necessary production files
-        - 'var/cache/prod/**'
-        - 'public/index.php'
-        - 'public/build/entrypoints.json'
-        - 'public/build/manifest.json'
+  patterns:
+    # Exclude development files
+    - '!assets/**'
+    - '!node_modules/**'
+    - '!public/build/**'
+    - '!tests/**'
+    - '!var/**'
+    # Include necessary production files
+    - 'var/cache/prod/**'
+    - 'public/index.php'
+    - 'public/build/entrypoints.json'
+    - 'public/build/manifest.json'
 
 ################################################################################
 # AWS Resources Configuration
 ################################################################################
 resources:
-    Resources:
-        # Main message queue
-        MainQueue:
-            Type: "AWS::SQS::Queue"
-            Properties:
-                QueueName: sbs_main-queue-${sls:stage}
-                RedrivePolicy:
-                    maxReceiveCount: 3
-                    deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+  Resources:
+    # Main message queue
+    MainQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: sbs_main-queue-${sls:stage}
+        RedrivePolicy:
+          maxReceiveCount: 3
+          deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
 
-        # Dead letter queue for failed messages
-        DeadLetterQueue:
-            Type: AWS::SQS::Queue
-            Properties:
-                QueueName: sbs_dlq-${sls:stage}
-                MessageRetentionPeriod: 1209600 # 14 days
+    # Dead letter queue for failed messages
+    DeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: sbs_dlq-${sls:stage}
+        MessageRetentionPeriod: 1209600 # 14 days
 
-        # DynamoDB table for sessions
-        SessionsTable:
-            Type: AWS::DynamoDB::Table
-            Properties:
-                TableName: sbs_${sls:stage}_sessions
-                AttributeDefinitions:
-                    - AttributeName: id
-                      AttributeType: S
-                KeySchema:
-                    - AttributeName: id
-                      KeyType: HASH
-                TimeToLiveSpecification:
-                    AttributeName: expires
-                    Enabled: true
-                BillingMode: PAY_PER_REQUEST
+    # DynamoDB table for sessions
+    SessionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: sbs_${sls:stage}_sessions
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: expires
+          Enabled: true
+        BillingMode: PAY_PER_REQUEST
 
-        # DynamoDB table for application cache
-        DataCache:
-            Type: AWS::DynamoDB::Table
-            Properties:
-                TableName: sbs_${sls:stage}_data
-                AttributeDefinitions:
-                    - AttributeName: id
-                      AttributeType: S
-                KeySchema:
-                    - AttributeName: id
-                      KeyType: HASH
-                TimeToLiveSpecification:
-                    AttributeName: expires
-                    Enabled: true
-                BillingMode: PAY_PER_REQUEST
+    # DynamoDB table for application cache
+    DataCache:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: sbs_${sls:stage}_data
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: expires
+          Enabled: true
+        BillingMode: PAY_PER_REQUEST
 
-        ################################################################################
-        # Database Security Configuration
-        ################################################################################
-        # Security group for RDS access
-        DBSecurityGroup:
-            Type: AWS::EC2::SecurityGroup
-            Properties:
-                GroupDescription: RDS database access from Lambda
-                VpcId: !Ref VPC
-                Tags:
-                    - Key: Name
-                      Value: ${self:service}-${sls:stage}-db
-                SecurityGroupIngress:
-                    - Description: Allow inbound MySQL access from Lambda
-                      FromPort: 3306
-                      ToPort: 3306
-                      IpProtocol: tcp
-                      SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
+    ################################################################################
+    # Database Security Configuration
+    ################################################################################
+    # Security group for RDS access
+    DBSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: RDS database access from Lambda
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-db
+        SecurityGroupIngress:
+          - Description: Allow inbound MySQL access from Lambda
+            FromPort: 3306
+            ToPort: 3306
+            IpProtocol: tcp
+            SourceSecurityGroupId: !GetAtt AppSecurityGroup.GroupId
 
-        # Security group egress rule for Lambda to RDS communication
-        AppSecurityGroupEgress:
-            Type: AWS::EC2::SecurityGroupEgress
-            Properties:
-                Description: Allows Lambda to access MySQL in the DBSecurityGroup
-                GroupId: !Ref AppSecurityGroup
-                FromPort: 3306
-                ToPort: 3306
-                IpProtocol: tcp
-                DestinationSecurityGroupId: !Ref DBSecurityGroup
+    # Security group egress rule for Lambda to RDS communication
+    AppSecurityGroupEgress:
+      Type: AWS::EC2::SecurityGroupEgress
+      Properties:
+        Description: Allows Lambda to access MySQL in the DBSecurityGroup
+        GroupId: !Ref AppSecurityGroup
+        FromPort: 3306
+        ToPort: 3306
+        IpProtocol: tcp
+        DestinationSecurityGroupId: !Ref DBSecurityGroup
 
-        # Uncomment to create an RDS instance
-        #RDSInstance:
-        #    Type: AWS::RDS::DBInstance
-        #    Properties:
-        #        DBInstanceIdentifier: ${self:service}-${self:provider.stage}-db
-        #        AllocatedStorage: 20
-        #        DBInstanceClass: db.t3.micro
-        #        Engine: mysql
-        #        EngineVersion: '8.0'
-        #        MasterUsername: admin
-        #        MasterUserPassword: changeme
-        #        DBName:
-        #            Fn::Join:
-        #                - ''
-        #                - - ${self:service}
-        #                  - ${sls:stage}
-        #        VPCSecurityGroups:
-        #            - !GetAtt DBSecurityGroup.GroupId
-        #        DBSubnetGroupName:
-        #            Ref: RDSSubnetGroup
+    # Uncomment to create an RDS instance
+    RDSInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceIdentifier: ${self:service}-${self:provider.stage}-db
+        AllocatedStorage: 20
+        DBInstanceClass: db.t3.micro
+        Engine: mysql
+        EngineVersion: '8.0'
+        MasterUsername: admin
+        MasterUserPassword: changeme
+        DBName:
+          Fn::Join:
+            - ''
+            - - ${self:service}
+              - ${sls:stage}
+        VPCSecurityGroups:
+          - !GetAtt DBSecurityGroup.GroupId
+        DBSubnetGroupName:
+          Ref: RDSSubnetGroup
