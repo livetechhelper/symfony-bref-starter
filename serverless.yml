@@ -183,7 +183,9 @@ constructs:
         type: server-side-website
         assets:
             '/build/*': public/build
-            #'/bundles/*': public/bundles # Enable for bundle assets
+            '/_wdt/*': public/_wdt
+            '/_profiler/*': public/_profiler
+            '/bundles/*': public/bundles # Enable for bundle assets
         #domain: ${param:website_url}
         #certificate: ${param:cert}
 

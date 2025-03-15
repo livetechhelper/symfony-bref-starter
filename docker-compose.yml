@@ -1,7 +1,7 @@
 services:
+  # Main web service using Bref's PHP-FPM image for Lambda-like environment
   web:
     image: bref/php-83-fpm-dev:2
-    container_name: symfony_bref_starter_web
     ports: [ '8011:8000' ]
     volumes:
       - .:/var/task
@@ -12,28 +12,50 @@ services:
       DOCUMENT_ROOT: public
       APP_ENV: local
 
-  # this is used to run composer install, yarn install, encore dev etc. etc. because the base php-fpm image
-  # doesn't have it in - I can't do an image on top of theirs because it's a specific AWS lambda one
+  # Development container for running commands (composer, yarn, etc.)
+  # Uses a custom image with additional tools not available in the base PHP-FPM image
   dev_php:
     image: registry.gitlab.com/tomctech/bref-symfony-ci-docker:v1-0
-    container_name: symfony_bref_starter_dev_php
+    volumes:
+      - .:/var/task
     depends_on:
       - mysql
     env_file: .env.local
-    # put a bullshit command so we can keep the container running
+    # Keep container running for executing commands
     command: tail -f /dev/null
+
+  # Queue worker to simulate Lambda queue processing
+  queue_worker:
+    image: bref/php-83-console:2
     volumes:
       - .:/var/task
+    depends_on:
+      - mysql
+    env_file: .env.local
+    environment:
+      APP_ENV: local
+      HANDLER: bin/console
+    entrypoint: ["php", "bin/console"]
+    command: ["messenger:consume", "async", "--time-limit=3600", "-vvv"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mysql:
-    container_name: symfony_bref_starter_mysql
     image: mysql:8.0.33
+    # Add explicit environment variables
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=symfony_bref_starter_dev
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: symfony_bref_starter_dev
     volumes:
+      # Use a specific directory to persist database files
+      # This prevents data loss between container rebuilds
       - ./var/data/mysql:/var/lib/mysql:rw
     ports:
+      # Use a non-standard port to avoid conflicts with local MySQL installations
       - '3311:3306'
+
+volumes:
+  db_data:

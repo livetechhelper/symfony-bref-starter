@@ -23,6 +23,7 @@
                     <li>Dark mode support (toggle in the header)</li>
                     <li>Stimulus.js for interactive components</li>
                     <li><a href="{{ path('app.theme.list') }}" class="text-primary-600 dark:text-primary-400 underline">Customizable themes</a> with color palette support</li>
+                    <li><a href="{{ path('app.queue.index') }}" class="text-primary-600 dark:text-primary-400 underline">Queue management</a> for monitoring message queues</li>
                 </ul>
             </div>
             
@@ -45,6 +46,7 @@
     <div class="card-footer">
         <div class="flex justify-between">
             <a href="{{ path('app.test_message') }}" class="btn btn-primary">Test SQS Message</a>
+            <a href="{{ path('app.queue.index') }}" class="btn btn-primary">Queue Management</a>
             <a href="https://bref.sh/docs" target="_blank" class="btn btn-secondary">Bref Documentation</a>
         </div>
     </div>

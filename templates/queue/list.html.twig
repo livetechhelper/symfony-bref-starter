@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Queue Messages - {{ queueName }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">
+            Queue Messages: {{ queueName }}
+        </h1>
+    </div>
+    
+    <div class="card-body">
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span class="text-gray-600 dark:text-gray-400">Change Queue:</span>
+            {% for queue in queues %}
+                <a href="{{ path('app.queue.list', {queueName: queue}) }}" 
+                   class="{% if queue == queueName %}bg-primary-500 text-white{% else %}bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300{% endif %} px-3 py-1 rounded hover:opacity-80 transition-opacity">
+                    {{ queue }}
+                </a>
+            {% endfor %}
+        </div>
+        
+        {% if messages|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">ID</th>
+                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Created At</th>
+                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Available At</th>
+                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Status</th>
+                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for message in messages %}
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="text-gray-700 dark:text-gray-300">{{ message.id }}</td>
+                                <td class="text-gray-700 dark:text-gray-300">{{ message.created_at|date('Y-m-d H:i:s') }}</td>
+                                <td class="text-gray-700 dark:text-gray-300">{{ message.available_at|date('Y-m-d H:i:s') }}</td>
+                                <td class="text-gray-700 dark:text-gray-300">
+                                    {% if message.delivered_at %}
+                                        <span class="badge badge-success">Delivered</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('app.queue.message_detail', {id: message.id}) }}" class="btn btn-sm btn-secondary">View Details</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-4 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <p class="text-gray-700 dark:text-gray-300">No messages found in the {{ queueName }} queue.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="card-footer">
+        <div class="flex justify-between">
+            <a href="{{ path('app.queue.index') }}" class="btn btn-secondary">Back to Queue Overview</a>
+            <a href="{{ path('app.test_message') }}" class="btn btn-primary">Send Test Message</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -2,7 +2,7 @@
 
 namespace App\Message;
 
-class TestMessage implements AsyncMessageInterface
+class SimpleMessage
 {
     private string $message;
 
@@ -21,4 +21,4 @@ class TestMessage implements AsyncMessageInterface
     {
         $this->message = $message;
     }
-}
+} 

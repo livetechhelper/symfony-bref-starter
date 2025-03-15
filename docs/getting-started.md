@@ -4,74 +4,127 @@ This guide will help you set up and run your Symfony Bref Starter project locall
 
 ## Prerequisites
 
-- Docker and Docker Compose
+You need:
+
+- Docker and Docker Compose installed
 - AWS Account with billing enabled
 - AWS CLI installed and configured
-- Node.js and Yarn (for asset management)
-- Serverless Framework CLI (`npm install -g serverless`)
+- Serverless Framework CLI installed locally (`npm install -g serverless`) - Required for deployments
+
+All other dependencies (PHP, Node.js, Yarn, etc.) are included in the Docker environment.
 
 ## Local Development Setup
 
+### Quick Setup (Recommended for First Time)
+
 1. Clone the repository:
    ```shell
-   git clone https://github.com/livetechhelper/symfony-bref-starter.git YOUR_DIR
-   cd YOUR_DIR
+   git clone https://github.com/livetechhelper/symfony-bref-starter.git YOUR_PROJECT
+   cd YOUR_PROJECT
    ```
 
-2. Start the Docker containers:
+2. Make the startup script executable:
+   ```shell
+   chmod +x bin/startup.sh
+   ```
+
+3. Run the startup script:
+   ```shell
+   ./bin/startup.sh
+   ```
+
+The startup script automates the entire setup process:
+- Creates .env.local from .env.example
+- Starts Docker containers
+- Installs PHP dependencies via Composer
+- Installs Node.js dependencies via Yarn
+- Builds frontend assets
+- Sets up the database
+- Clears caches
+
+4. View the project at [http://localhost:8011](http://localhost:8011/)
+
+### Manual Setup (Alternative Method)
+
+If you prefer to set up the project manually or need to understand the setup process, here are the steps:
+
+1. Create your local environment file:
+   ```shell
+   cp .env.example .env.local
+   ```
+
+2. Start the Docker environment:
    ```shell
    docker compose up -d
    ```
 
-3. Enter the development container:
+3. Install dependencies and build assets:
    ```shell
+   # Enter the development container
    docker exec -ti symfony_bref_starter_dev_php bash
    cd /var/task
-   ```
 
-4. Install dependencies:
-   ```shell
+   # Install dependencies
    composer install
    yarn install
    yarn dev
    ```
 
-5. View the project:
-   Open [http://localhost:8011/](http://localhost:8011/) in your browser.
-
 ## Development Workflow
 
-### Running Commands
-
-All Symfony commands should be run inside the development container. For example:
-
-```shell
-# Create a new controller
-php bin/console make:controller
-
-# Create a new entity
-php bin/console make:entity
-
-# Run database migrations
-php bin/console doctrine:migrations:migrate
-```
+After initial setup, here's how to work with the project:
 
 ### Asset Management
 
-The project uses Webpack Encore for asset management:
+For frontend development, you can use these commands inside the dev container:
 
 ```shell
-# Watch for changes and rebuild
-yarn watch
+# Watch for changes during development
+docker exec -ti symfony_bref_starter_dev_php bash -c "cd /var/task && yarn watch"
 
 # Build for production
-yarn build
+docker exec -ti symfony_bref_starter_dev_php bash -c "cd /var/task && yarn build"
+```
+
+### Running Commands
+
+All commands should be run inside the development container:
+
+```shell
+# Enter the container
+docker exec -ti symfony_bref_starter_dev_php bash
+cd /var/task
+
+# Common Symfony commands
+php bin/console cache:clear
+php bin/console make:controller
+php bin/console make:entity
+php bin/console doctrine:migrations:migrate
+```
+
+### Queue Worker
+
+The application includes a queue worker that simulates AWS Lambda's queue processing environment:
+
+- The worker runs in a separate container (`queue_worker`)
+- It processes messages from the async transport
+- Environment variables match the Lambda environment
+- View logs with: `docker compose logs -f queue_worker`
+
+To send test messages to the queue:
+
+```shell
+docker exec -ti symfony_bref_starter_dev_php bash
+cd /var/task
+php bin/console messenger:send-test
 ```
 
 ### Testing
 
+Run tests inside the development container:
+
 ```shell
-# Run tests
+# Run full test suite
 php bin/phpunit
 
 # Run specific test
@@ -80,21 +133,89 @@ php bin/phpunit tests/path/to/test
 
 ## Environment Configuration
 
-1. Create a `.env.local` file:
-   ```shell
-   cp .env .env.local
-   ```
+The `.env.local` file should contain your local configuration. Key variables:
 
-2. Configure your environment variables:
-   ```dotenv
-   APP_ENV=dev
-   APP_SECRET=your-secret-here
-   DATABASE_URL="mysql://user:pass@host:3306/dbname"
-   ```
+```dotenv
+# Application
+APP_ENV=dev
+APP_DEBUG=true
+DATABASE_URL="mysql://admin:password@127.0.0.1:3311/symfony_bref_starter_dev"
+
+# Queue configuration
+MESSENGER_TRANSPORT_DSN=doctrine://default
+
+# MySQL Container Configuration
+MYSQL_ROOT_PASSWORD=password
+MYSQL_DATABASE=symfony_bref_starter_dev
+MYSQL_USER=admin
+MYSQL_PASSWORD=password
+```
+
+## Deployment
+
+Deployments are handled using the Serverless Framework:
+
+```shell
+# Deploy to development
+serverless deploy --stage dev
+
+# Deploy to production
+serverless deploy --stage prod
+```
+
+Note: Deployments should be run from your local machine (not inside Docker) as they need access to your AWS credentials.
 
 ## Next Steps
 
-- [AWS Configuration](aws-setup.md) - Set up your AWS environment
-- [Database Setup](database-setup.md) - Configure your database
-- [Deployment Guide](deployment.md) - Deploy your application
-- [Security Configuration](security.md) - Configure authentication and authorization 
+- [AWS Configuration Guide](aws-setup.md) - Set up your AWS environment
+- [Security Configuration](security.md) - Configure authentication and security
+- [Monitoring Guide](monitoring.md) - Set up monitoring and logging
+- [Performance Guide](performance.md) - Optimize your application
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Port conflicts**: If port 8011 is already in use, modify the port in `docker-compose.yml`.
+
+2. **Permission issues**: If you encounter permission problems:
+   ```shell
+   sudo chown -R $(id -u):$(id -g) .
+   ```
+
+3. **Container access**: If you can't access the container:
+   ```shell
+   # Restart containers
+   docker compose down
+   docker compose up -d
+   ```
+
+4. **Cache issues**: Clear all caches:
+   ```shell
+   # Inside the dev container
+   php bin/console cache:clear
+   yarn cache clean
+   ```
+
+5. **Queue worker issues**: If messages aren't being processed:
+   ```shell
+   # Check queue worker logs
+   docker compose logs -f queue_worker
+   
+   # Restart queue worker
+   docker compose restart queue_worker
+   ```
+
+6. **Database issues**: If you need to reset the database:
+   ```shell
+   # Inside the dev container
+   php bin/console doctrine:database:drop --force
+   php bin/console doctrine:database:create
+   php bin/console doctrine:migrations:migrate --no-interaction
+   ```
+
+### Getting Help
+
+- Check the [Troubleshooting Guide](troubleshooting.md)
+- Review [AWS Documentation](https://docs.aws.amazon.com/lambda/latest/dg/lambda-php.html)
+- Visit [Bref Documentation](https://bref.sh/docs/) 

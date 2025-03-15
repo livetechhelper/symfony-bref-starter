@@ -4,6 +4,7 @@ twig:
     form_themes:
         - 'tailwind_2_layout.html.twig'
         - 'form/tailwind_customizations.html.twig'
+    debug: '%kernel.debug%'
     globals:
         # Add any global variables here
 

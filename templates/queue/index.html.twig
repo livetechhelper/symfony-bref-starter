@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Queue Overview{% endblock %}
+
+{% block body %}
+<div class="container mx-auto p-8">
+    <h1 class="text-4xl font-bold text-center mb-8">Queue Overview</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for queue, count in queueStats %}
+            <div class="card shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <div class="card-body">
+                    <h2 class="card-title capitalize text-2xl">{{ queue }} Queue</h2>
+                    <p class="text-3xl font-semibold my-4">{{ count }} messages</p>
+                    <div class="card-actions justify-end">
+                        <a href="{{ path('app.queue.list', {queueName: queue}) }}" class="btn btn-primary">View Messages</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

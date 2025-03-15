@@ -51,8 +51,8 @@ Before you begin, ensure you have:
 - Docker and Docker Compose installed
 - AWS Account with billing enabled
 - AWS CLI installed and configured
-- Node.js 18+ and Yarn
-- Serverless Framework CLI (`npm install -g serverless`)
+
+All other dependencies (PHP, Node.js, Yarn, Serverless Framework) are included in the Docker environment.
 
 See [Getting Started Guide](docs/getting-started.md) for detailed setup instructions.
 
@@ -60,29 +60,33 @@ See [Getting Started Guide](docs/getting-started.md) for detailed setup instruct
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/symfony-bref-starter.git
+   git clone https://github.com/livetechhelper/symfony-bref-starter.git
    cd symfony-bref-starter
    ```
 
-2. Start the development environment:
+2. Make the startup script executable:
    ```bash
-   docker compose up -d
+   chmod +x bin/startup.sh
    ```
 
-3. Install dependencies:
+3. Run the startup script to set up your environment:
    ```bash
-   docker compose exec -w /var/task dev_php composer install
-   yarn install
+   ./bin/startup.sh
    ```
+   This script will:
+   - Create your .env.local file
+   - Start Docker containers
+   - Install PHP dependencies
+   - Install Node.js dependencies
+   - Build frontend assets
+   - Set up the database
+   - Clear caches
 
-4. Build assets:
-   ```bash
-   yarn dev
-   ```
-
-5. Access the application:
+4. Access the application:
    - Website: [http://localhost:8011](http://localhost:8011)
    - Symfony debug toolbar enabled in dev environment
+
+For manual setup instructions and development workflow, see the [Getting Started Guide](docs/getting-started.md).
 
 ## 📚 Documentation
 
@@ -170,6 +174,48 @@ The application uses a modern serverless architecture:
   - Global asset delivery
   - SSL/TLS termination
   - DDoS protection
+
+## 🚀 Architecture
+
+### Message Queue System
+
+This project uses Symfony Messenger for handling asynchronous operations. The setup is specifically designed to mirror AWS Lambda behavior in the local development environment:
+
+- **Queue Worker Container**: Uses `bref/php-83` image to simulate the Lambda environment for processing messages
+- **Environment Consistency**: Ensures environment variables and context match AWS Lambda
+- **Transport**: Uses Doctrine as message transport (configurable in `.env`)
+
+#### Message Types
+
+Messages are organized using interfaces:
+
+- `MessageInterface`: Base interface for all messages
+- `AsyncMessageInterface`: For messages that should be processed by the queue worker
+- `SyncMessageInterface`: For messages that need immediate processing
+
+#### Why This Setup?
+
+When deploying to AWS Lambda, the environment for processing messages (queue worker) is different from the web environment:
+
+1. Different environment variables are available
+2. Different PHP settings may apply
+3. Different services may be accessible
+
+By using a separate container with the Bref runtime for the queue worker, we:
+- Catch environment-related issues early
+- Ensure consistent behavior between local and AWS environments
+- Make it easier to debug queue-related issues
+
+#### Best Practices
+
+1. Always implement either `AsyncMessageInterface` or `SyncMessageInterface`
+2. Use async messages for:
+   - Operations that can be delayed
+   - Background processing
+   - Operations that might fail and need retry
+3. Use sync messages for:
+   - Operations that must complete before the response
+   - Operations that affect the user's immediate experience
 
 ## 🛠️ Development
 

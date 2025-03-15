@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Message Details - ID {{ message.id }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">Message Details #{{ message.id }}</h1>
+
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title">Message Information</h2>
+            <ul class="list-disc pl-5">
+                <li><strong>ID:</strong> {{ message.id }}</li>
+                <li><strong>Queue:</strong> {{ message.queue_name }}</li>
+                <li><strong>Created At:</strong> {{ message.created_at|date('Y-m-d H:i:s') }}</li>
+                <li><strong>Available At:</strong> {{ message.available_at|date('Y-m-d H:i:s') }}</li>
+                <li><strong>Status:</strong> {% if message.delivered_at %}Delivered{% else %}Pending{% endif %}</li>
+            </ul>
+
+            {% if message.queue_name == 'failed' and decodedHeaders['X-Message-Stamp-FailureReason'] is defined %}
+                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <strong>Failure Reason:</strong>
+                    <pre>{{ decodedHeaders['X-Message-Stamp-FailureReason'] }}</pre>
+                </div>
+            {% endif %}
+
+            <h2 class="card-title mt-4">Message Body</h2>
+            <pre class="bg-gray-100 p-4 rounded">{{ decodedBody|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+            <h2 class="card-title mt-4">Raw Headers</h2>
+            <pre class="bg-gray-100 p-4 rounded">{{ decodedHeaders|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+        </div>
+    </div>
+
+    <div class="mt-6">
+        <a href="{{ path('app.queue.list', {queueName: message.queue_name}) }}" class="btn btn-secondary">Back to Queue</a>
+        <a href="{{ path('app.queue.index') }}" class="btn btn-primary">Queue Overview</a>
+    </div>
+</div>
+{% endblock %} 

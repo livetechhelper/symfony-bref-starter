@@ -1,12 +1,51 @@
+# This configuration is designed to mirror AWS Lambda behavior in development
+# The queue worker runs in a separate container using bref/php-83 to simulate
+# the Lambda environment and catch any environment-related issues early
 framework:
     messenger:
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        failure_transport: failed
+
+        serializer:
+            default_serializer: messenger.transport.native_php_serializer
+
         transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+            # Using Doctrine as the transport for reliability and consistency
+            # In AWS, you would typically use SQS instead
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                serializer: messenger.transport.symfony_serializer
                 options:
-                    auto_setup: false
+                    auto_setup: true
+                    queue_name: async
+            failed:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    auto_setup: true
+                    queue_name: failed
+
+            # Used for synchronous messages (only in dev)
+            # Note: Sync messages are processed in the web environment,
+            # which may have different env vars and settings than the queue worker
             sync: 'sync://'
+
         routing:
+            # Make async the default for all messages
+            # that don't have a more specific routing
+            # These will be processed by the queue worker in the Lambda-like environment
+            'Symfony\Component\Mailer\Messenger\SendEmailMessage': async
+            'Symfony\Component\Notifier\Message\ChatMessage': async
+            'Symfony\Component\Notifier\Message\SmsMessage': async
+
             # Route your messages to the transports
-            'App\Message\MessageInterface': sync
+            # AsyncMessageInterface ensures messages are processed in the queue worker
+            # which has the same environment as AWS Lambda
+            'App\Message\MessageInterface': async
             'App\Message\AsyncMessageInterface': async
+            'App\Message\SimpleMessage': async
+            
+            # SyncMessageInterface is for messages that must be processed immediately
+            # Be careful with sync messages as they run in the web environment
+            'App\Message\SyncMessageInterface': sync
