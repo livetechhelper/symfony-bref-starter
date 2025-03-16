@@ -3,38 +3,51 @@
 {% block title %}Message Details - ID {{ message.id }}{% endblock %}
 
 {% block body %}
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">Message Details #{{ message.id }}</h1>
+<div class="container mx-auto p-8">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">Message Details #{{ message.id }}</h1>
 
-    <div class="card shadow-lg">
-        <div class="card-body">
-            <h2 class="card-title">Message Information</h2>
-            <ul class="list-disc pl-5">
-                <li><strong>ID:</strong> {{ message.id }}</li>
-                <li><strong>Queue:</strong> {{ message.queue_name }}</li>
-                <li><strong>Created At:</strong> {{ message.created_at|date('Y-m-d H:i:s') }}</li>
-                <li><strong>Available At:</strong> {{ message.available_at|date('Y-m-d H:i:s') }}</li>
-                <li><strong>Status:</strong> {% if message.delivered_at %}Delivered{% else %}Pending{% endif %}</li>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="px-6 py-5">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Message Information</h2>
+            <ul class="space-y-2 mb-6">
+                <li class="text-gray-700 dark:text-gray-300"><span class="font-medium">ID:</span> {{ message.id }}</li>
+                <li class="text-gray-700 dark:text-gray-300"><span class="font-medium">Queue:</span> {{ message.queue_name }}</li>
+                <li class="text-gray-700 dark:text-gray-300"><span class="font-medium">Created At:</span> {{ message.created_at|date('Y-m-d H:i:s') }}</li>
+                <li class="text-gray-700 dark:text-gray-300"><span class="font-medium">Available At:</span> {{ message.available_at|date('Y-m-d H:i:s') }}</li>
+                <li class="text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Status:</span> 
+                    {% if message.delivered_at %}
+                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">Delivered</span>
+                    {% else %}
+                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">Pending</span>
+                    {% endif %}
+                </li>
             </ul>
 
             {% if message.queue_name == 'failed' and decodedHeaders['X-Message-Stamp-FailureReason'] is defined %}
-                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div class="mt-6 p-4 bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 rounded-md">
                     <strong>Failure Reason:</strong>
-                    <pre>{{ decodedHeaders['X-Message-Stamp-FailureReason'] }}</pre>
+                    <pre class="mt-2 overflow-x-auto">{{ decodedHeaders['X-Message-Stamp-FailureReason'] }}</pre>
                 </div>
             {% endif %}
 
-            <h2 class="card-title mt-4">Message Body</h2>
-            <pre class="bg-gray-100 p-4 rounded">{{ decodedBody|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">Message Body</h2>
+            <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-md overflow-x-auto text-gray-700 dark:text-gray-300 text-sm">{{ decodedBody|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
 
-            <h2 class="card-title mt-4">Raw Headers</h2>
-            <pre class="bg-gray-100 p-4 rounded">{{ decodedHeaders|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-8 mb-4">Raw Headers</h2>
+            <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-md overflow-x-auto text-gray-700 dark:text-gray-300 text-sm">{{ decodedHeaders|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
         </div>
     </div>
 
-    <div class="mt-6">
-        <a href="{{ path('app.queue.list', {queueName: message.queue_name}) }}" class="btn btn-secondary">Back to Queue</a>
-        <a href="{{ path('app.queue.index') }}" class="btn btn-primary">Queue Overview</a>
+    <div class="flex gap-4">
+        <a href="{{ path('app.queue.list', {queueName: message.queue_name}) }}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            Back to Queue
+        </a>
+        <a href="{{ path('app.queue.index') }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            Queue Overview
+        </a>
     </div>
 </div>
 {% endblock %} 

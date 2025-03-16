@@ -16,11 +16,19 @@ A production-ready starter template for building serverless PHP applications usi
   - Composer 2.x dependency management
   - PSR standards compliance
 
+- **API & Frontend**:
+  - [API Platform](https://api-platform.com/) for RESTful API development
+  - Vue.js for interactive frontend components
+  - JWT authentication for secure API access
+  - Swagger UI for API documentation and testing
+  - See [API Documentation](docs/api.md)
+
 - **Authentication & Security**:
   - Complete user management system
   - Secure password handling
   - CSRF protection
   - AWS security best practices
+  - JWT authentication for API endpoints
   - See [Security Guide](docs/security.md)
 
 - **Theme System**:
@@ -44,6 +52,10 @@ A production-ready starter template for building serverless PHP applications usi
   - Comprehensive logging
   - Detailed documentation
 
+## ⚠️ Disclaimer
+
+This starter template is a work in progress and not perfect. It's based on my personal experience building serverless PHP applications with Symfony and Bref. I've used this setup many times, and it's proven to be a practical and easy-to-use foundation. However, I'm completely open to suggestions, improvements, and contributions. If you have ideas on how to make this better, please feel free to open an issue or submit a pull request!
+
 ## 📋 Prerequisites
 
 Before you begin, ensure you have:
@@ -55,6 +67,11 @@ Before you begin, ensure you have:
 All other dependencies (PHP, Node.js, Yarn, Serverless Framework) are included in the Docker environment.
 
 See [Getting Started Guide](docs/getting-started.md) for detailed setup instructions.
+
+## 🔧 Additional Resources
+
+- [7777](https://7777.digital/) - A serverless platform for PHP applications that provides additional tooling and simplified deployments
+- [Bref Dashboard](https://dashboard.bref.sh/) - A web interface to monitor and manage your Bref applications on AWS Lambda
 
 ## 🚀 Quick Start
 
@@ -110,6 +127,13 @@ For manual setup instructions and development workflow, see the [Getting Started
   - Database migrations
   - Asset management
   - Rollback procedures
+
+- [API Documentation](docs/api.md)
+  - API Platform overview
+  - JWT authentication
+  - Available endpoints
+  - Interactive Swagger UI
+  - Entity configuration
 
 ### Advanced Topics
 - [Security Configuration](docs/security.md)
@@ -265,127 +289,3 @@ docker compose exec -w /var/task dev_php php bin/phpunit tests/path/to/test
    ```bash
    serverless deploy --stage dev
    ```
-
-3. Deploy to production:
-   ```bash
-   serverless deploy --stage prod
-   ```
-
-See the [Deployment Guide](docs/deployment.md) for complete instructions.
-
-## 🔒 Security Features
-
-- User authentication system
-- Password reset functionality
-- CSRF protection
-- Secure session handling
-- AWS security best practices
-- See [Security Guide](docs/security.md)
-
-## 📊 Monitoring Features
-
-- CloudWatch integration
-- X-Ray distributed tracing
-- Custom metrics
-- Error tracking
-- Health checks
-- See [Monitoring Guide](docs/monitoring.md)
-
-## 🎯 Performance Features
-
-- Cold start optimization
-- Asset optimization
-- Multi-layer caching
-- Database optimization
-- Lambda tuning
-- See [Performance Guide](docs/performance.md)
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
-- Code of Conduct
-- Development process
-- Pull request guidelines
-- Coding standards
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Bref](https://bref.sh/) - PHP Runtime for AWS Lambda
-- [Symfony](https://symfony.com/) - PHP Framework
-- [Serverless Framework](https://www.serverless.com/) - Infrastructure as Code
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-
-## AWS Configuration
-
-### Setup Instructions
-
-1. **Set AWS Account ID and Region**:
-   - Open `serverless.yml` and set your AWS account ID and region in the `custom` section:
-
-   ```yaml
-   custom:
-     awsAccountId: 'YOUR_AWS_ACCOUNT_ID'
-     awsRegion: 'YOUR_AWS_REGION'
-   ```
-
-   Replace `'YOUR_AWS_ACCOUNT_ID'` and `'YOUR_AWS_REGION'` with your actual AWS account ID and preferred region.
-
-2. **Service Name**:
-   - Ensure the `service` field in `serverless.yml` reflects your application name:
-
-   ```yaml
-   service: your-service-name
-   ```
-
-### Custom Domains (Optional)
-
-By default, the configuration uses AWS's default URLs. If you want to use a custom domain, you'll need to:
-
-1. Register a domain in Route53 or point your domain to Route53.
-2. Create an ACM certificate in `us-east-1` (for CloudFront).
-3. Update the certificate ARN in `serverless.yml`.
-4. Uncomment the trusted hosts configuration in the environment section.
-
-Refer to `docs/aws-setup.md#custom-domains` for detailed instructions.
-
-### RDS Instance Creation
-
-By default, the configuration includes an RDS instance setup (commented out). If you uncomment this section, an RDS instance will be created, incurring additional costs:
-
-- RDS instance: approximately $15/month
-- VPC configuration: approximately $5/month
-
-Ensure you understand these costs before enabling this configuration.
-
-### IAM and AWS CLI Setup
-
-Before deploying, ensure you have:
-
-1. **IAM Setup**:
-   - Create an IAM user with the permissions specified in `docs/iam_role.md`.
-   - This user should have permissions for managing Lambda, S3, CloudFront, RDS, and other AWS services used by this application.
-   - Note the AWS Access Key ID and Secret Access Key.
-
-2. **AWS CLI Configuration**:
-
-```bash
-aws configure
-```
-
-Enter your AWS Access Key ID, Secret Access Key, default region (e.g., `us-east-1`), and output format (`json`).
-
-### Deployment Instructions
-
-Deploy your application using Serverless:
-
-```bash
-serverless deploy --stage=dev
-```
-
-Ensure you have the necessary permissions and configurations set up as described above.
-
-This documentation ensures clarity on setup, costs, and deployment steps.

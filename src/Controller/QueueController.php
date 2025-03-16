@@ -21,7 +21,12 @@ class QueueController extends AbstractController
         $messagesCount = $connection->fetchOne('SELECT COUNT(*) FROM messenger_messages');
         
         // Get stats by queue name
-        $queueStats = $connection->fetchAllAssociative('
+        $queueStats = [
+            'async' => 0,
+            'failed' => 0
+        ];
+        
+        $queueData = $connection->fetchAllAssociative('
             SELECT queue_name, COUNT(*) as count, 
                    MIN(created_at) as oldest_message, 
                    MAX(created_at) as newest_message
@@ -29,18 +34,15 @@ class QueueController extends AbstractController
             GROUP BY queue_name
         ');
         
-        // Get the most recent messages
-        $recentMessages = $connection->fetchAllAssociative('
-            SELECT id, body, headers, queue_name, created_at, available_at, delivered_at
-            FROM messenger_messages
-            ORDER BY created_at DESC
-            LIMIT 10
-        ');
+        // Format queue stats data as an associative array with queue names as keys
+        foreach ($queueData as $data) {
+            $queueName = $data['queue_name'];
+            $queueStats[$queueName] = (int)$data['count'];
+        }
         
         return $this->render('queue/index.html.twig', [
             'messagesCount' => $messagesCount,
-            'queueStats' => $queueStats,
-            'recentMessages' => $recentMessages
+            'queueStats' => $queueStats
         ]);
     }
     
@@ -58,10 +60,17 @@ class QueueController extends AbstractController
             ORDER BY created_at DESC
         ', ['queue_name' => $queueName]);
         
-        // Get list of available queues for the dropdown
-        $queues = $connection->fetchFirstColumn('
+        // Always include both default queues
+        $queues = ['async', 'failed'];
+        
+        // Get any additional queues from the database
+        $dbQueues = $connection->fetchFirstColumn('
             SELECT DISTINCT queue_name FROM messenger_messages ORDER BY queue_name
         ');
+        
+        // Merge and remove duplicates
+        $queues = array_unique(array_merge($queues, $dbQueues));
+        sort($queues);
         
         return $this->render('queue/list.html.twig', [
             'messages' => $messages,

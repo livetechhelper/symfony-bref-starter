@@ -22,6 +22,8 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "api-platform/doctrine-orm": "^4.1",
+        "api-platform/symfony": "^4.1",
         "async-aws/async-aws-bundle": "*",
         "async-aws/dynamo-db-session": "*",
         "bref/symfony-bridge": "*",
@@ -30,6 +32,8 @@
         "doctrine/doctrine-bundle": "^2.12",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.1",
+        "lexik/jwt-authentication-bundle": "^3.1",
+        "nelmio/cors-bundle": "^2.5",
         "phpdocumentor/reflection-docblock": "^5.3",
         "phpstan/phpdoc-parser": "^1.27",
         "rikudou/psr6-dynamo-db-bundle": "*",
@@ -117,6 +121,7 @@
         }
     },
     "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^4.0",
         "phpunit/phpunit": "^9.5",
         "symfony/browser-kit": "7.2.*",
         "symfony/css-selector": "7.2.*",

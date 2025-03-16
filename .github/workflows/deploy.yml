@@ -1,0 +1,53 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'prod'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+
+    - name: Install dependencies
+      run: |
+        composer install --prefer-dist --optimize-autoloader
+        yarn install
+
+    - name: Build assets
+      run: |
+        yarn dev
+
+    - name: Deploy to development
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        serverless deploy --stage dev --param="SITE_VERSION=d-${{ github.sha }}" --verbose --force
+
+    - name: Deploy to production
+      if: github.event.inputs.environment == 'prod'
+      run: |
+        composer install --prefer-dist --optimize-autoloader --no-dev
+        php bin/console cache:warmup --env=prod
+        yarn build
+        yarn build:email
+        SLS_DEBUG=true serverless deploy --stage prod --param="SITE_VERSION=p-${{ github.sha }}" --verbose --force 

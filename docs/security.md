@@ -251,6 +251,63 @@ $this->logger->alert('Failed login attempt', [
 ]);
 ```
 
+## JWT Authentication for API Platform
+
+The application uses JWT (JSON Web Tokens) for API authentication with API Platform.
+
+### 1. JWT Configuration
+
+The project uses LexikJWTAuthenticationBundle:
+
+```yaml
+# config/packages/lexik_jwt_authentication.yaml
+lexik_jwt_authentication:
+    secret_key: '%env(resolve:JWT_SECRET_KEY)%'
+    public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    token_ttl: 3600 # 1 hour
+```
+
+### 2. API Security Configuration
+
+```yaml
+# config/packages/security.yaml
+security:
+    # ...
+    firewalls:
+        # ...
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+```
+
+### 3. Obtaining JWT Tokens
+
+To get a token, send a POST request to the login endpoint:
+
+```bash
+curl -X POST https://your-domain.com/api/login -d '{"email":"user@example.com","password":"password"}'
+```
+
+### 4. API Documentation Login
+
+The Swagger UI interface for API Platform allows login via the interface:
+
+1. Browse to `/api/docs`
+2. Click the "Authorize" button
+3. Enter credentials to receive a JWT token
+4. The token will be automatically used for all API requests
+
+For more details, see the [API Documentation](api.md).
+
 ## Next Steps
 
 - [Deployment Guide](deployment.md) - Deploy your secure application

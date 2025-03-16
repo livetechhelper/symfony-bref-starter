@@ -5,20 +5,19 @@
  * which should already be in your base.html.twig.
  */
 import './styles/app.css';
+import { createApp } from 'vue';
 
-// Import Stimulus controllers
-import { startStimulusApp } from '@symfony/stimulus-bridge';
-import '@hotwired/turbo';
+// Create a new Vue app
+const app = createApp({
+    data() {
+        return {
+            message: 'Hello from Vue.js!'
+        };
+    },
+    template: `<div>{{ message }}</div>`
+});
 
-// Register Stimulus controllers
-export const app = startStimulusApp(require.context(
-    './controllers',
-    true,
-    /\.(j|t)sx?$/
-));
+// Mount the Vue app to an element with id 'vue-app'
+app.mount('#vue-app');
 
-// You can specify which controllers should be imported
-// import HelloController from './controllers/hello_controller';
-// app.register('hello', HelloController);
-
-console.log('Symfony Bref Starter - Frontend initialized! 🎉');
+console.log('Symfony Bref Starter - Frontend initialized with Vue.js! 🎉');

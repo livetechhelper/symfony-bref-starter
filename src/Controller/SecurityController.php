@@ -8,17 +8,14 @@ use App\Form\RegistrationFormType;
 use App\Form\ResetPasswordRequestFormType;
 use App\Form\ResetPasswordFormType;
 use App\Repository\UserRepository;
-use App\Security\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SecurityController extends AbstractController
 {
@@ -44,9 +41,9 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/logout', name: 'app.security.logout')]
-    public function logout(): void
+    public function logout(): Response
     {
-        // This method can be empty - it will be intercepted by the logout key on your firewall
+        // This method will never be executed as it will be intercepted by the logout key on your firewall
         throw new \LogicException('This method should not be reached!');
     }
 

@@ -83,7 +83,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-docker compose exec -w /var/task dev_php bin/console assets:install public
+docker compose exec -w /var/task dev_php bin/console assets:install public --symlink
 
 # Install Node.js dependencies and build assets
 echo "🎨 Installing and building frontend assets..."
@@ -94,6 +94,16 @@ docker compose exec -w /var/task dev_php yarn dev
 echo "🗄️ Setting up database..."
 docker compose exec -w /var/task dev_php php bin/console doctrine:database:create --if-not-exists
 docker compose exec -w /var/task dev_php php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+
+# Check if database has users, if not load fixtures
+echo "🌱 Checking if database needs seeding..."
+if ! docker compose exec -w /var/task dev_php php bin/console doctrine:query:sql "SELECT 1 FROM user LIMIT 1" > /dev/null 2>&1; then
+    echo "🌱 Database is empty. Loading fixtures..."
+    docker compose exec -w /var/task dev_php php bin/console doctrine:fixtures:load --no-interaction
+    echo "✅ Database seeded successfully!"
+else
+    echo "✅ Database already has data. Skipping fixtures."
+fi
 
 # Start web and queue worker
 echo "🌐 Starting web server and queue worker..."

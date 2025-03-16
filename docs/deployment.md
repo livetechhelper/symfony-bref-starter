@@ -139,4 +139,41 @@ If deployment fails or issues are discovered:
 
 - [Monitoring Guide](monitoring.md) - Set up monitoring and alerts
 - [Performance Tuning](performance.md) - Optimize your application
-- [Security Best Practices](security.md) - Secure your deployment 
+- [Security Best Practices](security.md) - Secure your deployment
+
+## GitHub Actions Setup
+
+1. **Create Environment Secrets**:
+   - Go to your GitHub repository.
+   - Navigate to `Settings` > `Secrets and variables` > `Actions`.
+   - Add the following secrets:
+     - `AWS_ACCESS_KEY_ID`: Your AWS access key ID.
+     - `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key.
+     - `AWS_REGION`: Your AWS region (e.g., `us-east-1`).
+
+2. **Deployment Workflow**:
+   - The GitHub Actions workflow is defined in `.github/workflows/deploy.yml`.
+   - It automatically deploys to the development environment on pushes to the `develop` branch.
+   - To deploy to production, trigger the workflow manually and specify `prod` as the environment.
+
+## GitLab CI/CD Setup
+
+1. **Create Environment Variables**:
+   - Go to your GitLab project.
+   - Navigate to `Settings` > `CI / CD` > `Variables`.
+   - Add the following variables:
+     - `AWS_ACCESS_KEY_ID`: Your AWS access key ID.
+     - `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key.
+     - `AWS_REGION`: Your AWS region (e.g., `us-east-1`).
+
+2. **Deployment Pipeline**:
+   - The GitLab CI/CD pipeline is defined in `.gitlab-ci.yml`.
+   - It automatically deploys to the development environment on pushes to the `develop` branch.
+   - To deploy to production, trigger the pipeline manually from the GitLab interface.
+
+## Additional Configuration
+
+- Ensure your AWS IAM user has the necessary permissions as specified in `docs/iam_role.md`.
+- Update `serverless.yml` with your AWS account ID, region, and service name.
+
+This guide ensures you can easily configure and deploy your application using either GitHub Actions or GitLab CI/CD. 

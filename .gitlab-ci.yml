@@ -22,7 +22,7 @@ dev:
     - serverless deploy --stage dev --param="SITE_VERSION=d-${CI_COMMIT_SHORT_SHA}" --verbose --force
   environment:
     name: dev
-    url: https://dev.symfony-bref-starter.com
+    # url: https://dev.symfony-bref-starter.com
 
 prod:
   stage: deploy
@@ -40,4 +40,4 @@ prod:
     - SLS_DEBUG=true serverless deploy --stage prod --param="SITE_VERSION=p-${CI_COMMIT_SHORT_SHA}" --verbose --force
   environment:
     name: prod
-    url: https://symfony-bref-starter.com
+    # url: https://symfony-bref-starter.com

@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User List{% endblock %}
+
+{% block body %}
+<div id="vue-user-list" class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">User List</h1>
+    <div v-if="users.length === 0">Loading users...</div>
+    <ul v-else>
+        <li v-for="user in users" :key="user.id" class="mb-2">
+            <strong>{{ user.email }}</strong> - {{ user.roles.join(', ') }}
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                users: []
+            };
+        },
+        mounted() {
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(data => {
+                    this.users = data['hydra:member'];
+                });
+        }
+    });
+    app.mount('#vue-user-list');
+</script>
+{% endblock %} 

@@ -4,16 +4,41 @@
 
 {% block body %}
 <div class="container mx-auto p-8">
-    <h1 class="text-4xl font-bold text-center mb-8">Queue Overview</h1>
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Queue Overview</h1>
+        <a href="{{ path('app.test_message') }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            Send Test Message
+        </a>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         {% for queue, count in queueStats %}
-            <div class="card shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                <div class="card-body">
-                    <h2 class="card-title capitalize text-2xl">{{ queue }} Queue</h2>
-                    <p class="text-3xl font-semibold my-4">{{ count }} messages</p>
-                    <div class="card-actions justify-end">
-                        <a href="{{ path('app.queue.list', {queueName: queue}) }}" class="btn btn-primary">View Messages</a>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 capitalize mb-4">{{ queue }} Queue</h2>
+                    
+                    <div class="flex items-center mb-8">
+                        <div class="flex-1">
+                            <p class="text-4xl font-bold text-primary-600 dark:text-primary-400">
+                                {{ count }}
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {% if count == 1 %}message{% else %}messages{% endif %}
+                            </p>
+                        </div>
+                        {% if queue == 'failed' and count > 0 %}
+                            <span class="px-3 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+                                Attention needed
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <a href="{{ path('app.queue.list', {queueName: queue}) }}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            View Messages
+                        </a>
                     </div>
                 </div>
             </div>

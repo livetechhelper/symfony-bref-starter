@@ -3,68 +3,88 @@
 {% block title %}Queue Messages - {{ queueName }}{% endblock %}
 
 {% block body %}
-<div class="card">
-    <div class="card-header">
-        <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">
-            Queue Messages: {{ queueName }}
+<div class="container mx-auto p-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+            Queue Messages: <span class="text-primary-600 dark:text-primary-400">{{ queueName }}</span>
         </h1>
+        <a href="{{ path('app.test_message') }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            Send Test Message
+        </a>
     </div>
     
-    <div class="card-body">
-        <div class="flex flex-wrap gap-2 mb-4">
-            <span class="text-gray-600 dark:text-gray-400">Change Queue:</span>
-            {% for queue in queues %}
-                <a href="{{ path('app.queue.list', {queueName: queue}) }}" 
-                   class="{% if queue == queueName %}bg-primary-500 text-white{% else %}bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300{% endif %} px-3 py-1 rounded hover:opacity-80 transition-opacity">
-                    {{ queue }}
-                </a>
-            {% endfor %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">Available Queues</h2>
+            <div class="flex flex-wrap gap-3">
+                {% for queue in queues %}
+                    <a href="{{ path('app.queue.list', {queueName: queue}) }}" 
+                       class="{% if queue == queueName %}bg-primary-600 text-white font-medium shadow-md{% else %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %} px-4 py-2 rounded-md transition-colors duration-150">
+                        {{ queue }}
+                        {% if queue == 'failed' %}
+                            <span class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-semibold rounded-full {% if queue == queueName %}bg-white text-primary-700{% else %}bg-red-500 text-white{% endif %}">!</span>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
         
-        {% if messages|length > 0 %}
-            <div class="overflow-x-auto">
-                <table class="table w-full">
-                    <thead>
-                        <tr>
-                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">ID</th>
-                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Created At</th>
-                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Available At</th>
-                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Status</th>
-                            <th class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for message in messages %}
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <td class="text-gray-700 dark:text-gray-300">{{ message.id }}</td>
-                                <td class="text-gray-700 dark:text-gray-300">{{ message.created_at|date('Y-m-d H:i:s') }}</td>
-                                <td class="text-gray-700 dark:text-gray-300">{{ message.available_at|date('Y-m-d H:i:s') }}</td>
-                                <td class="text-gray-700 dark:text-gray-300">
-                                    {% if message.delivered_at %}
-                                        <span class="badge badge-success">Delivered</span>
-                                    {% else %}
-                                        <span class="badge badge-warning">Pending</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{{ path('app.queue.message_detail', {id: message.id}) }}" class="btn btn-sm btn-secondary">View Details</a>
-                                </td>
+        <div class="px-6 py-4">
+            {% if messages|length > 0 %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
+                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Available At</th>
+                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            {% for message in messages %}
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ message.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ message.created_at|date('Y-m-d H:i:s') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{{ message.available_at|date('Y-m-d H:i:s') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        {% if message.delivered_at %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">Delivered</span>
+                                        {% else %}
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <a href="{{ path('app.queue.message_detail', {id: message.id}) }}" 
+                                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm  bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-6 mb-6 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">No messages found in the <strong>{{ queueName }}</strong> queue.</p>
+                    <a href="{{ path('app.test_message') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Send Test Message
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between">
+                <a href="{{ path('app.queue.index') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Back to Queue Overview
+                </a>
             </div>
-        {% else %}
-            <div class="p-4 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <p class="text-gray-700 dark:text-gray-300">No messages found in the {{ queueName }} queue.</p>
-            </div>
-        {% endif %}
-    </div>
-    
-    <div class="card-footer">
-        <div class="flex justify-between">
-            <a href="{{ path('app.queue.index') }}" class="btn btn-secondary">Back to Queue Overview</a>
-            <a href="{{ path('app.test_message') }}" class="btn btn-primary">Send Test Message</a>
         </div>
     </div>
 </div>

@@ -17,29 +17,26 @@ class LoginFormType extends AbstractType
             ->add('email', EmailType::class, [
                 'label' => 'Email',
                 'attr' => [
-                    'placeholder' => 'Enter your email address',
+                    'placeholder' => 'you@example.com',
                     'autocomplete' => 'email',
                 ],
-                'required' => true,
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Password',
                 'attr' => [
-                    'placeholder' => 'Enter your password',
                     'autocomplete' => 'current-password',
                 ],
-                'required' => true,
             ])
             ->add('_remember_me', CheckboxType::class, [
                 'label' => 'Remember me',
                 'required' => false,
-                'mapped' => false,
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
+            'csrf_protection' => true,
             'csrf_field_name' => '_csrf_token',
             'csrf_token_id' => 'authenticate',
         ]);

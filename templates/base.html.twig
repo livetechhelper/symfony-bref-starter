@@ -29,12 +29,39 @@
                             })
                             .catch(error => console.error('Error loading saved theme:', error));
                     }
+
+                    // Handle clicking outside dropdown
+                    document.addEventListener('click', function(event) {
+                        const dropdown = document.getElementById('user-dropdown');
+                        const dropdownMenu = document.getElementById('dropdown-menu');
+                        
+                        if (dropdown && dropdownMenu && !dropdown.contains(event.target)) {
+                            dropdownMenu.classList.add('hidden');
+                        }
+                    });
+
+                    // Initialize theme toggle
+                    const themeToggle = document.getElementById('theme-toggle');
+                    if (themeToggle) {
+                        themeToggle.addEventListener('click', function() {
+                            const html = document.documentElement;
+                            const isDark = html.classList.contains('dark');
+                            
+                            if (isDark) {
+                                html.classList.remove('dark');
+                                localStorage.setItem('theme', 'light');
+                            } else {
+                                html.classList.add('dark');
+                                localStorage.setItem('theme', 'dark');
+                            }
+                        });
+                    }
                 });
             </script>
         {% endblock %}
     </head>
     <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
-        <div {{ stimulus_controller('theme') }} class="flex flex-col min-h-full">
+        <div class="flex flex-col min-h-full">
             <header class="bg-white dark:bg-gray-800 shadow">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                     <div class="flex items-center">
@@ -48,9 +75,9 @@
                         </a>
                         
                         {% if app.user %}
-                            <div class="relative" {{ stimulus_controller('dropdown') }}>
+                            <div class="relative" id="user-dropdown">
                                 <button 
-                                    {{ stimulus_action('dropdown', 'toggle') }}
+                                    onclick="document.getElementById('dropdown-menu').classList.toggle('hidden')"
                                     class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
                                 >
                                     <span>{{ app.user.fullName|default(app.user.email) }}</span>
@@ -59,8 +86,8 @@
                                     </svg>
                                 </button>
                                 <div 
-                                    {{ stimulus_target('dropdown', 'menu') }}
-                                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 hidden z-10"
+                                    id="dropdown-menu"
+                                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10 hidden"
                                 >
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</a>
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
@@ -77,7 +104,7 @@
                         {% endif %}
                         
                         <button 
-                            {{ stimulus_action('theme', 'toggle') }}
+                            id="theme-toggle"
                             class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             aria-label="Toggle dark mode"
                         >
@@ -101,7 +128,11 @@
                     {% endfor %}
                 {% endfor %}
                 
-                {% block body %}{% endblock %}
+                {% block body %}
+                    <div id="vue-app" class="p-4 bg-gray-100 rounded shadow-md">
+                        <!-- Vue.js will replace this content -->
+                    </div>
+                {% endblock %}
             </main>
 
             <footer class="bg-white dark:bg-gray-800 shadow-inner mt-auto">

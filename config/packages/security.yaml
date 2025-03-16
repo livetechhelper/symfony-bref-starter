@@ -13,42 +13,32 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            jwt: ~
         main:
             lazy: true
             provider: app_user_provider
-            
-            # Specify the entry point to use when an anonymous user tries to access a protected page
-            entry_point: App\Security\LoginFormAuthenticator
-            
-            # Custom authenticator
-            custom_authenticator: App\Security\LoginFormAuthenticator
-            
-            # Form login configuration
+            stateless: false
             form_login:
                 login_path: app.security.login
                 check_path: app.security.login
-                enable_csrf: true
                 default_target_path: app.dashboard
                 username_parameter: email
                 password_parameter: password
-                
-            # Logout configuration
+                csrf_parameter: _csrf_token
+                csrf_token_id: authenticate
             logout:
                 path: app.security.logout
-                target: app.home
-                
-            # Remember me configuration
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 604800 # 1 week
-                path: /
-                always_remember_me: false
-
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+                target: app.security.login
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -59,6 +49,9 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

@@ -3,51 +3,60 @@
 {% block title %}Welcome to Symfony Bref Starter!{% endblock %}
 
 {% block body %}
-<div class="card">
-    <div class="card-header">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <h1 class="text-2xl font-bold text-primary-700 dark:text-primary-300">Hello there! ✅</h1>
     </div>
     
-    <div class="card-body">
-        <p class="mb-4">If you can see this, you're on the right track, yay!</p>
+    <div class="p-6">
+        <p class="mb-4 text-gray-700 dark:text-gray-300">If you can see this, you're on the right track, yay!</p>
         
-        <div {{ stimulus_controller('hello', { name: 'Symfony Bref' }) }}>
-            <p class="mb-2">Stimulus controller example:</p>
-            <div {{ stimulus_target('hello', 'output') }} class="p-3 bg-primary-100 dark:bg-primary-900 rounded text-primary-800 dark:text-primary-200 mb-4"></div>
-            
-            <div class="bg-primary-50 dark:bg-primary-900 border border-primary-200 dark:border-primary-800 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-2">New Features</h3>
-                <p class="text-primary-700 dark:text-primary-300 mb-2">This project now includes:</p>
-                <ul class="list-disc list-inside text-primary-700 dark:text-primary-300 space-y-1">
-                    <li>Tailwind CSS for utility-first styling</li>
-                    <li>Dark mode support (toggle in the header)</li>
-                    <li>Stimulus.js for interactive components</li>
-                    <li><a href="{{ path('app.theme.list') }}" class="text-primary-600 dark:text-primary-400 underline">Customizable themes</a> with color palette support</li>
-                    <li><a href="{{ path('app.queue.index') }}" class="text-primary-600 dark:text-primary-400 underline">Queue management</a> for monitoring message queues</li>
-                </ul>
-            </div>
-            
-            <h2 class="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Server Parameters</h2>
-            <p class="mb-2 text-gray-600 dark:text-gray-400">Below you can see the server params (these will be empty locally)</p>
-            
-            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-md">
-                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                    {% for field, value in data %}
-                        <li class="px-4 py-3 flex justify-between">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ field }}</span>
-                            <span class="text-gray-500 dark:text-gray-400">{{ value }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+        <div class="bg-primary-50 dark:bg-primary-900 border border-primary-200 dark:border-primary-800 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-2">New Features</h3>
+            <p class="text-primary-700 dark:text-primary-300 mb-2">This project now includes:</p>
+            <ul class="list-disc list-inside text-primary-700 dark:text-primary-300 space-y-1">
+                <li>Tailwind CSS for utility-first styling</li>
+                <li>Dark mode support (toggle in the header)</li>
+                <li>Vue.js for interactive components</li>
+                <li><a href="https://api-platform.com/docs/" target="_blank" class="text-primary-600 dark:text-primary-400 underline">API Platform</a> for RESTful API creation</li>
+                <li><a href="{{ path('app.theme.list') }}" class="text-primary-600 dark:text-primary-400 underline">Customizable themes</a> with color palette support</li>
+                <li><a href="{{ path('app.queue.index') }}" class="text-primary-600 dark:text-primary-400 underline">Queue management</a> for monitoring message queues</li>
+                <li><a href="/api/docs" class="text-primary-600 dark:text-primary-400 underline">API Documentation</a> with interactive Swagger UI</li>
+            </ul>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Server Parameters</h2>
+        <p class="mb-2 text-gray-600 dark:text-gray-400">Below you can see the server params (these will be empty locally)</p>
+        
+        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-md">
+            <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for field, value in data %}
+                    <li class="px-4 py-3 flex justify-between">
+                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ field }}</span>
+                        <span class="text-gray-500 dark:text-gray-400">{{ value }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
     
-    <div class="card-footer">
-        <div class="flex justify-between">
-            <a href="{{ path('app.test_message') }}" class="btn btn-primary">Test SQS Message</a>
-            <a href="{{ path('app.queue.index') }}" class="btn btn-primary">Queue Management</a>
-            <a href="https://bref.sh/docs" target="_blank" class="btn btn-secondary">Bref Documentation</a>
+    <div class="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex flex-wrap gap-4 justify-between">
+            <a href="{{ path('app.test_message') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Test SQS Message
+            </a>
+            <a href="{{ path('app.queue.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Queue Overview
+            </a>
+            <a href="/api/docs" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                API Documentation
+            </a>
+            <a href="https://bref.sh/docs" target="_blank" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Bref Documentation
+            </a>
+            <a href="https://api-platform.com/docs/" target="_blank" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                API Platform Docs
+            </a>
         </div>
     </div>
 </div>
