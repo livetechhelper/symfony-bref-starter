@@ -8,7 +8,7 @@ The configuration below is based off of the bref version, but in testing I neede
   "Statement": [
     {
       "Action": [
-       "apigateway:*",
+        "apigateway:*",
 				"cloudformation:CancelUpdateStack",
 				"cloudformation:ContinueUpdateRollback",
 				"cloudformation:CreateChangeSet",
@@ -55,9 +55,11 @@ The configuration below is based off of the bref version, but in testing I neede
 				"ec2:AttachInternetGateway",
 				"ec2:AuthorizeSecurityGroupIngress",
 				"ec2:AuthorizeSecurityGroupEgress",
+        "ec2:CreateVpcEndpoint",
 				"ec2:CreateInternetGateway",
 				"ec2:CreateNetworkAcl",
 				"ec2:CreateNetworkAclEntry",
+        "ec2:CreateRoute",
 				"ec2:CreateRouteTable",
 				"ec2:CreateSecurityGroup",
 				"ec2:CreateSubnet",
@@ -72,6 +74,7 @@ The configuration below is based off of the bref version, but in testing I neede
 				"ec2:DeleteVpc",
 				"ec2:Describe*",
 				"ec2:DetachInternetGateway",
+        "ec2:DisassociateRouteTable",
 				"ec2:ModifyVpcAttribute",
 				"ec2:CreateDhcpOptions",
 				"ec2:DeleteDhcpOptions",
@@ -113,6 +116,7 @@ The configuration below is based off of the bref version, but in testing I neede
 				"rds:CreateDBSubnetGroup",
 				"rds:DeleteDBSubnetGroup",
 				"rds:CreateDBInstance",
+				"rds:DescribeDBSubnetGroups",
 				"rds:DeleteDBInstance",
 				"rds:ModifyDBInstance",
 				"rds:ModifyDBSubnetGroup",
